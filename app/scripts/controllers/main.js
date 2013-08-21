@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .controller('MainCtrl', function ($scope) {
+  .controller('MainCtrl', function ($scope, Token) {
 
 //    $scope.accessToken = Token.get();
 
@@ -12,8 +12,8 @@ angular.module('geboClientApp')
       console.log('authenticate');
 
 //      var extraParams = $scope.askApproval ? {approval_prompt: 'force'} : {};
-//      Token.getTokenByPopup(extraParams)
-//        .then(function(params) {
+      Token.getTokenByPopup(extraParams)
+        .then(function(params) {
 //          // Success getting token from popup.
 //
 //          // Verify the token before setting it, to avoid the confused deputy problem.
@@ -31,10 +31,23 @@ angular.module('geboClientApp')
 //        }, function() {
 //          // Failure getting token from popup.
 //          alert("Failed to get token from popup.");
-//        });
+        });
     };
 
-
-
-
   });
+
+//  }).
+//  config(function(TokenProvider) {
+    // Demo configuration for the "angular-oauth demo" project on Google.
+    // Log in at will!
+
+    // Sorry about this way of getting a relative URL, powers that be.
+//    var baseUrl = document.URL.replace('example/demo.html', '');
+//
+//    TokenProvider.extendConfig({
+////      clientId: '191261111313.apps.googleusercontent.com',
+//      clientId: 'abc123',
+//      redirectUri: baseUrl + 'src/oauth2callback.html',  // allow lunching demo from a mirror
+////      scopes: ["https://www.googleapis.com/auth/userinfo.email"]
+//      scopes: ["*"]
+//  });

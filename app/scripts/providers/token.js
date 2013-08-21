@@ -41,7 +41,7 @@ angular.module('geboClientApp')
      *
      * @return object
      */
-    this.$get = function($q) {
+    this.$get = function($q, $window) {
       var requiredAndMissing = [];
 
       angular.forEach(_config, function(value, key) {
@@ -118,71 +118,71 @@ angular.module('geboClientApp')
                 return deferred.promise;
               },
 
-//        /**
-//         * Verifies an access token asynchronously.
-//         *
-//         * @param extraParams An access token received from the authorization server.
-//         * @param popupOptions Settings for the display of the popup.
-//         * @returns {Promise} Promise that will be resolved when the authorization server has verified that the
-//         *  token is valid, and we've verified that the token is passed back has audience that matches our client
-//         *  ID (to prevent the Confused Deputy Problem).
-//         *
-//         *  If there's an error verifying the token, the promise is rejected with an object identifying the `name` error
-//         *  in the name member.  The `name` can be either:
-//         *
-//         *    - `invalid_audience`: The audience didn't match our client ID.
-//         *    - `error_response`: The server responded with an error, typically because the token was invalid.  In this
-//         *      case, the callback parameters to `error` callback on `$http` are available in the object (`data`,
-//         *      `status`, `headers`, `config`).
-//         */
-//        getTokenByPopup: function(extraParams, popupOptions) {
-//          popupOptions = angular.extend({
-//            name: 'AuthPopup',
-//            openParams: {
-//              width: 650,
-//              height: 300,
-//              resizable: true,
-//              scrollbars: true,
-//              status: true
-//            }
-//          }, popupOptions);
-//
-//          var deferred = $q.defer(),
-//            params = angular.extend(getParams(), extraParams),
-//            url = config.authorizationEndpoint + '?' + objectToQueryString(params),
-//            resolved = false;
-//
-//          var formatPopupOptions = function(options) {
-//            var pairs = [];
-//            angular.forEach(options, function(value, key) {
-//              if (value || value === 0) {
-//                value = value === true ? 'yes' : value;
-//                pairs.push(key + '=' + value);
-//              }
-//            });
-//            return pairs.join(',');
-//          };
-//
-//          var popup = window.open(url, popupOptions.name, formatPopupOptions(popupOptions.openParams));
-//
-//          // TODO: binding occurs for each reauthentication, leading to leaks for long-running apps.
-//
-//          angular.element($window).bind('message', function(event) {
-//            if (event.source == popup && event.origin == window.location.origin) {
-//              $rootScope.$apply(function() {
-//                if (event.data.access_token) {
-//                  deferred.resolve(event.data)
-//                } else {
-//                  deferred.reject(event.data)
-//                }
-//              })
-//            }
-//          });
-//
-//          // TODO: reject deferred if the popup was closed without a message being delivered + maybe offer a timeout
-//
-//          return deferred.promise;
-//        }
+        /**
+         * Verifies an access token asynchronously.
+         *
+         * @param extraParams An access token received from the authorization server.
+         * @param popupOptions Settings for the display of the popup.
+         * @returns {Promise} Promise that will be resolved when the authorization server has verified that the
+         *  token is valid, and we've verified that the token is passed back has audience that matches our client
+         *  ID (to prevent the Confused Deputy Problem).
+         *
+         *  If there's an error verifying the token, the promise is rejected with an object identifying the `name` error
+         *  in the name member.  The `name` can be either:
+         *
+         *    - `invalid_audience`: The audience didn't match our client ID.
+         *    - `error_response`: The server responded with an error, typically because the token was invalid.  In this
+         *      case, the callback parameters to `error` callback on `$http` are available in the object (`data`,
+         *      `status`, `headers`, `config`).
+         */
+        getTokenByPopup: function(extraParams, popupOptions) {
+          popupOptions = angular.extend({
+            name: 'AuthPopup',
+              openParams: {
+              width: 650,
+              height: 300,
+              resizable: true,
+              scrollbars: true,
+              status: true
+            }
+          }, popupOptions);
+
+          var deferred = $q.defer(),
+            params = angular.extend(getParams(), extraParams),
+            url = _config.authorizationEndpoint + '?' + objectToQueryString(params),
+            resolved = false;
+
+          var formatPopupOptions = function(options) {
+            var pairs = [];
+            angular.forEach(options, function(value, key) {
+              if (value || value === 0) {
+                value = value === true ? 'yes' : value;
+                pairs.push(key + '=' + value);
+              }
+            });
+            return pairs.join(',');
+          };
+
+          var popup = window.open(url, popupOptions.name, formatPopupOptions(popupOptions.openParams));
+
+          // TODO: binding occurs for each reauthentication, leading to leaks for long-running apps.
+
+        angular.element($window).bind('message', function(event) {
+            if (event.source == popup && event.origin == window.location.origin) {
+              $rootScope.$apply(function() {
+                if (event.data.access_token) {
+                  deferred.resolve(event.data)
+                } else {
+                  deferred.reject(event.data)
+                }
+              })
+            }
+          });
+
+          // TODO: reject deferred if the popup was closed without a message being delivered + maybe offer a timeout
+
+          return deferred.promise;
+        }
       };
     };
 
@@ -211,7 +211,7 @@ angular.module('geboClientApp')
      * 
      * @returns {string} An URL-friendly query string.
      */
-    this.objectToQueryString = function(obj) {
+    var objectToQueryString = function(obj) {
       var str = [];
       angular.forEach(obj, function(value, key) {
         str.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));

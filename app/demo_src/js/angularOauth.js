@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('angularOauth', []).
+angular.module('angularOauth').
 
   provider('Token', function() {
 
