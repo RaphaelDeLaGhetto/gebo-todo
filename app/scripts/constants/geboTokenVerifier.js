@@ -2,7 +2,7 @@
 
 angular.module('geboClientApp').
 
-  constant('GeboTokenVerifier', function(config, accessToken, deferred) {
+  constant('GeboTokenVerifier', function(config, accessToken, deferred, Verifier) {
     var $injector = angular.injector(['ng']);
 
     return $injector.invoke(['$http', '$rootScope', function($http, $rootScope) {
@@ -25,6 +25,8 @@ angular.module('geboClientApp').
               // ID here. That isn't happeing at the moment,
               // hence all the commented stuff.
 //              if (data.audience === config.clientId) {
+                console.log(data);
+//                Verifier.authenticate(data);
                 deferred.resolve(data);
 //              } else {
 //                deferred.reject({name: 'invalid_audience'});

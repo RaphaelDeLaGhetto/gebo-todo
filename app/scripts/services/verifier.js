@@ -2,13 +2,13 @@
 
 angular.module('geboClientApp')
   .factory('Verifier', function () {
-    // Service logic
-    // ...
 
     var _verified = {},
         _token = null;
 
-    // Public API here
+    /**
+     * Public API here
+     */
     return {
       id: function() {
               return _verified.id;
