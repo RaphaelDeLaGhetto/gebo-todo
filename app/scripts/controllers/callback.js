@@ -12,7 +12,7 @@ angular.module('geboClientApp')
      */
     function parseKeyValue(/**string*/keyValue) {
       var obj = {}, key_value, key;
-      angular.forEach((keyValue || "").split('&'), function(keyValue){
+      angular.forEach((keyValue || '').split('&'), function(keyValue){
         if (keyValue) {
           key_value = keyValue.split('=');
           key = decodeURIComponent(key_value[0]);
@@ -30,7 +30,7 @@ angular.module('geboClientApp')
     //       https://developer.mozilla.org/en/docs/DOM/window.postMessage#Security_concerns)
 
 //    console.log('CallbackCtrl');
-    window.opener.postMessage(params, "*");
+    window.opener.postMessage(params, '*');
     window.close();
 
 

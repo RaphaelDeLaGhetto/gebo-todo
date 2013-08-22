@@ -3,7 +3,7 @@
 angular.module('geboClientApp')
   .controller('MainCtrl', function ($scope, Token) {
 
-//    $scope.accessToken = Token.get();
+    $scope.accessToken = Token.get();
 
     console.log('MainCtrl');
 //    console.log($scope.accessToken);
@@ -11,43 +11,40 @@ angular.module('geboClientApp')
     $scope.authenticate = function() {
       console.log('authenticate');
 
-//      var extraParams = $scope.askApproval ? {approval_prompt: 'force'} : {};
+      var extraParams = $scope.askApproval ? {approval_prompt: 'force'} : {};
       Token.getTokenByPopup(extraParams)
         .then(function(params) {
-//          // Success getting token from popup.
-//
-//          // Verify the token before setting it, to avoid the confused deputy problem.
-//          Token.verifyAsync(params.access_token).
-//            then(function(data) {
-//              console.log('verifyAsync');
-//              $scope.accessToken = params.access_token;
-//              $scope.expiresIn = params.expires_in;
-//
-//              Token.set(params.access_token);
-//            }, function() {
-//              alert("Failed to verify token.")
-//            });
-//
-//        }, function() {
-//          // Failure getting token from popup.
-//          alert("Failed to get token from popup.");
+          // Success getting token from popup.
+
+          // Verify the token before setting it, to avoid the confused deputy problem.
+          Token.verifyAsync(params.access_token).
+            then(function() {
+              $scope.accessToken = params.access_token;
+              $scope.expiresIn = params.expires_in;
+
+              Token.set(params.access_token);
+            }, function() {
+              window.alert('Failed to verify token.');
+            });
+        }, function() {
+          // Failure getting token from popup.
+          window.alert('Failed to get token from popup.');
         });
     };
-
-  });
-
-//  }).
-//  config(function(TokenProvider) {
+  }).config(function(TokenProvider, GeboTokenVerifier) {
     // Demo configuration for the "angular-oauth demo" project on Google.
     // Log in at will!
 
     // Sorry about this way of getting a relative URL, powers that be.
-//    var baseUrl = document.URL.replace('example/demo.html', '');
-//
-//    TokenProvider.extendConfig({
-////      clientId: '191261111313.apps.googleusercontent.com',
-//      clientId: 'abc123',
-//      redirectUri: baseUrl + 'src/oauth2callback.html',  // allow lunching demo from a mirror
-////      scopes: ["https://www.googleapis.com/auth/userinfo.email"]
-//      scopes: ["*"]
-//  });
+    var baseUrl = document.URL.replace('index.html', '');
+
+    console.log(baseUrl + 'oauth2callback.html');
+    TokenProvider.extendConfig({
+      clientId: 'abc123',
+      redirectUri: baseUrl + 'oauth2callback.html',
+      scopes: ['*'],
+      verifyFunc: GeboTokenVerifier,
+      authorizationEndpoint: 'http://localhost:3000/dialog/authorize'
+    });
+  });
+
