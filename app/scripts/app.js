@@ -180,7 +180,8 @@ angular.module('geboClientApp', [])
                           popupOptions.name,
                           formatPopupOptions(popupOptions.openParams));
 
-          // TODO: binding occurs for each reauthentication, leading to leaks for long-running apps.
+          // TODO: binding occurs for each reauthentication,
+          // leading to leaks for long-running apps.
 
           angular.element($window).bind('message', function(event) {
             if (event.source === popup && event.origin === window.location.origin) {
@@ -194,7 +195,8 @@ angular.module('geboClientApp', [])
             }
           });
 
-          // TODO: reject deferred if the popup was closed without a message being delivered + maybe offer a timeout
+          // TODO: reject deferred if the popup was closed without
+          // a message being delivered + maybe offer a timeout
 
           return deferred.promise;
         }

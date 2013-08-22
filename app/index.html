@@ -31,14 +31,14 @@
     <div class="container" ng-controller="MainCtrl">
         <div class="hero-unit">
             <h1>Word</h1>
-            <p>You must authenticate to allow gebo-client access to your gebo resources</p>
+            <p>Do you want to allow gebo-client access to your gebo resources?</p>
     
             <div>
-                <button ng-click="authenticate()">Authenticate</button>
+                <button ng-click="authenticate()">Allow</button>
             </div>
      
             <div ng-show="accessToken" style="display: none">
-                <h3>You have authenticated</h3>
+                <h3>You have allowed access</h3>
     
                 <h4>Access token</h4>
                 <pre>{{accessToken}}</pre>
@@ -58,10 +58,10 @@
 
     <!-- build:js scripts/scripts.js -->
     <script src="scripts/app.js"></script>
-    <script src="scripts/providers/token.js"></script>
     <script src="scripts/constants/geboTokenVerifier.js"></script>
     <script src="scripts/controllers/main.js"></script>
     <script src="scripts/controllers/callback.js"></script>
+    <script src="scripts/services/verifier.js"></script>
     <!-- endbuild -->
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->

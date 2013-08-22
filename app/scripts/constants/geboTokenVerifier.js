@@ -21,12 +21,15 @@ angular.module('geboClientApp').
               }
             }).
           success(function(data) {
-              if (data.audience === config.clientId) {
+              // It looks like the client needs to send its
+              // ID here. That isn't happeing at the moment,
+              // hence all the commented stuff.
+//              if (data.audience === config.clientId) {
                 deferred.resolve(data);
-              } else {
-                deferred.reject({name: 'invalid_audience'});
-              }
-            }).
+//              } else {
+//                deferred.reject({name: 'invalid_audience'});
+//              }
+              }).
           error(function(data, status, headers, config) {
               deferred.reject({
                 name: 'error_response',

@@ -5,11 +5,10 @@ angular.module('geboClientApp')
 
     $scope.accessToken = Token.get();
 
-    console.log('MainCtrl');
-//    console.log($scope.accessToken);
-
+    /**
+     * Allow gebo-client access to the gebo user's resources
+     */
     $scope.authenticate = function() {
-      console.log('authenticate');
 
       var extraParams = $scope.askApproval ? {approval_prompt: 'force'} : {};
       Token.getTokenByPopup(extraParams)
@@ -23,6 +22,7 @@ angular.module('geboClientApp')
               $scope.expiresIn = params.expires_in;
 
               Token.set(params.access_token);
+              $scope.accessToken = Token.get();
             }, function() {
               window.alert('Failed to verify token.');
             });
@@ -32,13 +32,9 @@ angular.module('geboClientApp')
         });
     };
   }).config(function(TokenProvider, GeboTokenVerifier) {
-    // Demo configuration for the "angular-oauth demo" project on Google.
-    // Log in at will!
-
-    // Sorry about this way of getting a relative URL, powers that be.
+    // Is this a dumb way to get a relative URL?
     var baseUrl = document.URL.replace('index.html', '');
 
-    console.log(baseUrl + 'oauth2callback.html');
     TokenProvider.extendConfig({
       clientId: 'abc123',
       redirectUri: baseUrl + 'oauth2callback.html',
