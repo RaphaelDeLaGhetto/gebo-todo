@@ -2,36 +2,65 @@
 
 describe('Service: Verifier', function () {
 
-//  var $httpBackend;
-
   //var GET_URI = 'http://localhost:3000/api/userinfo?access_token=123';
 
   // load the service's module
-  beforeEach(module('geboClientApp'));
+    beforeEach(module('geboClientApp'));
 
-  // instantiate service
-  var verifier;
-  beforeEach(inject(function (_Verifier_) {//, $injector) {
-    verifier = _Verifier_;
-//    $httpBackend = $injector.get('$httpBackend');
-//
-//    $httpBackend.when('GET', GET_URI).respond({
-//            id: '1',
-//            name: 'dan',
-//            email: 'dan@email.com',
-//            scope: '[\'*\']',
-//        });
+    // instantiate service
+    var verifier,
+        $httpBackend;
 
-  }));
+    beforeEach(function() {
+        module('geboClientApp');
 
-//  afterEach(function() {
-//    $httpBackend.verifyNoOutstandingExpectation();
-//    $httpBackend.verifyNoOutstandingRequest();
-//  });
+        inject(function (_Verifier_, $injector) {
+            verifier = _Verifier_;
+            $httpBackend = $injector.get('$httpBackend');
 
-  it('should do something', function () {
-    expect(!!verifier).toBe(true);
-  });
+            $httpBackend.when('GET', '/test').respond({
+                id: '1',
+                name: 'dan',
+                email: 'dan@email.com',
+                scope: ['*'],
+            });
+
+        });
+    });
+
+    afterEach(function() {
+        $httpBackend.verifyNoOutstandingExpectation();
+        $httpBackend.verifyNoOutstandingRequest();
+    });
+
+    /**
+     * verify
+     */
+    describe('verify', function() {
+        it('should do something', function () {
+            expect(!!verifier).toBe(true);
+        });
+    
+        it('should have no user data set', function() {
+            expect(verifier.id()).toBe(undefined);
+            expect(verifier.name()).toBe(undefined);
+            expect(verifier.email()).toBe(undefined);
+            expect(verifier.scope()).toBe(undefined);
+            expect(verifier.token()).toBe(null);
+        });
+    
+        it('should verify the client is still authenticated', function() {
+            $httpBackend.expectGET('/test'); 
+            verifier.verify(function(){
+                expect(verifier.id()).toBe('1');
+                expect(verifier.name()).toBe('dan');
+                expect(verifier.email()).toBe('dan@email.com');
+                expect(verifier.scope()).toEqual(['*']);
+                expect(verifier.token()).toBe('1234');
+            });
+            $httpBackend.flush();
+        });
+    });
 
   /**
    * getPostUrl
@@ -47,7 +76,7 @@ describe('Service: Verifier', function () {
   describe('deauthenticate', function() {
 
     beforeEach(function() {
-        verifier.authenticate({
+        verifier.setCredentials({
             id: '1',
             name: 'dan',
             email: 'dan@email.com',
@@ -79,11 +108,11 @@ describe('Service: Verifier', function () {
   });
 
   /**
-   * authenticate
+   * setCredentials
    */
-  describe('authenticate', function() {
+  describe('setCredentials', function() {
     beforeEach(function() {
-        verifier.authenticate({
+        verifier.setCredentials({
             id: '1',
             name: 'dan',
             email: 'dan@email.com',

@@ -2,15 +2,13 @@
 
 angular.module('geboClientApp').
 
-  constant('GeboTokenVerifier', function(config, accessToken, deferred, Verifier) {
+  constant('GeboTokenVerifier', function(config, accessToken, deferred, verifier) {
     var $injector = angular.injector(['ng']);
 
     return $injector.invoke(['$http', '$rootScope', function($http, $rootScope) {
       var verificationEndpoint = 'http://localhost:3000/api/userinfo';
-
-
+      
       $rootScope.$apply(function() {
-
         $http({
             method: 'GET',
             url: verificationEndpoint,
@@ -26,13 +24,14 @@ angular.module('geboClientApp').
               // hence all the commented stuff.
 //              if (data.audience === config.clientId) {
                 console.log(data);
-//                Verifier.authenticate(data);
+//                verifier.verify(data);
                 deferred.resolve(data);
 //              } else {
 //                deferred.reject({name: 'invalid_audience'});
 //              }
               }).
           error(function(data, status, headers, config) {
+
               deferred.reject({
                 name: 'error_response',
                 data: data,

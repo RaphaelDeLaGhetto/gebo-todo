@@ -13,7 +13,7 @@ angular.module('geboClientApp', [])
   }).
   // Why does this have to be 'provided' here? Why can't
   // it be defined in its own file?
-  provider('Token', function() {
+  provider('TokenOld', function() {
 
     /**
      *  This response type must be passed to the authorization endpoint using
@@ -119,9 +119,9 @@ angular.module('geboClientApp', [])
          *            case, the callback parameters to `error` callback on `$http` 
          *            are available in the object (`data`, `status`, `headers`, `config`).
          */
-        verifyAsync: function(accessToken) {
+        verifyAsync: function(accessToken, verifier) {
                 var deferred = $q.defer();
-                _config.verifyFunc(_config, accessToken, deferred);
+                _config.verifyFunc(_config, accessToken, deferred, verifier);
                 return deferred.promise;
               },
 

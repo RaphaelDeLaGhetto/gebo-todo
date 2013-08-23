@@ -2,47 +2,84 @@
 
 describe('Constant: GeboTokenVerifier', function () {
 
-    var $httpBackend;
+    var $httpBackend,
+        $http,
+        $rootScope;
 
-    var GET_URI = 'http://localhost:3000/api/userinfo?access_token=123';
+    var GET_URI = '/test',///*'http://localhost:3000*/'/api/userinfo',
+        CONFIG = {},
+        ACCESS_TOKEN = '1234';
 
-    var tokenVerifier;
+    var tokenVerifier,
+        verifier,
+        deferred;
 
-    beforeEach(module('geboClientApp', function(GeboTokenVerifier) {
-        tokenVerifier = GeboTokenVerifier;
-    }));
+//    beforeEach(module('geboClientApp', function(GeboTokenVerifier) {
+//        tokenVerifier = GeboTokenVerifier;
+//    }));
 
-    beforeEach(inject(function(_$httpBackend_, $rootScope, $route, $controller) {
-        $httpBackend = _$httpBackend_;
-        $httpBackend.when('GET', GET_URI).respond({
-            id: '1',
-            name: 'dan',
-            email: 'dan@email.com',
-            scope: '[\'*\']',
+    beforeEach(function() {
+        module('geboClientApp');
+
+        inject(function($injector) {
+
+            $httpBackend = $injector.get('$httpBackend');
+            $httpBackend.when('GET', GET_URI).respond({ name: 'dan' });
+
+            $rootScope = $injector.get('$rootScope');
+
+            tokenVerifier = $injector.get('GeboTokenVerifier', { $rootScope: $rootScope} );
+
+
+            verifier = $injector.get('Verifier');
+
+            var $q = $injector.get('$q');
+            deferred = $q.defer();
+
+//            $httpBackend.when('GET', GET_URI).respond({
+//                id: '1',
+//                name: 'dan',
+//                email: 'dan@email.com',
+//                scope: '[\'*\']',
+//            });
+
+//            $httpBackend.expectGET(GET_URI);
+//            spyOn(verifier, 'authenticate');
         });
-        $httpBackend.expectGET(GET_URI);
-    }));
+    });
+
+    afterEach(function() {
+        $httpBackend.verifyNoOutstandingExpectation();
+        $httpBackend.verifyNoOutstandingRequest();
+    });
+
 
     /**
      * A sanity check, for now. Will remove later
      */
     it('test tokenVerifier', inject(function() {
         expect(tokenVerifier).toBeDefined();
+        expect(verifier).toBeDefined();
     }));
 
     /**
      * What on earth is happening?
      */
-    describe('a strange new way of doing things', function() {
-        it('should do something', function() {
-            $httpBackend.expectGET(GET_URI).respond({
-            id: '1',
-            name: 'dan',
-            email: 'dan@email.com',
-            scope: '[\'*\']',
-        });
-        });
-    });
+//    describe('a strange new way of doing things', function() {
+//        it('should do something', function() {
+//            console.log('yeah?');
+//            $httpBackend.expectGET(GET_URI);
+//            tokenVerifier(CONFIG, ACCESS_TOKEN, deferred, verifier);//, function() {
+////                console.log('it got called');
+////                expect(verifier.name()).toBe('danny');       
+////            });
+//
+// //           expect(verifier.authenticate).toHaveBeenCalled();
+////            expect(verifier.id()).toBe('1');
+////            expect(verifier.name()).toBe('dan');
+////            $httpBackend.flush();
+//      });
+//    });
 
     /**
      * function results
