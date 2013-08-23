@@ -7,17 +7,25 @@ describe('Service: Verifier', function () {
   // load the service's module
     beforeEach(module('geboClientApp'));
 
+    var CLIENT_ID = 'abc123',
+        REDIRECT_URI = 'http://myhost.com',
+        AUTHORIZATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
+        LOCALSTORAGE_NAME = 'accessToken',
+        SCOPES = ['*'];
+
     // instantiate service
     var verifier,
+        token,
         $httpBackend;
 
     beforeEach(function() {
         module('geboClientApp');
 
-        inject(function (_Verifier_, $injector) {
+        inject(function (_Verifier_, Token, $injector) {
             verifier = _Verifier_;
-            $httpBackend = $injector.get('$httpBackend');
+            token = Token;
 
+            $httpBackend = $injector.get('$httpBackend');
             $httpBackend.when('GET', '/test').respond({
                 id: '1',
                 name: 'dan',
@@ -25,6 +33,14 @@ describe('Service: Verifier', function () {
                 scope: ['*'],
             });
 
+            token.setParams({
+              clientId: CLIENT_ID,
+              redirectUri: REDIRECT_URI,
+              authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              localStorageName: 'accessToken',
+              verifyFunc: verifier.verify,
+              scopes: SCOPES
+            });
         });
     });
 

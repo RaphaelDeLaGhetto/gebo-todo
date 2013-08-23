@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .factory('Verifier', function ($http) {
+  .factory('Verifier', function ($http, Token) {
 
     var _userInfo = {},
         _token = null,

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .factory('Token', function () {
+  .factory('Token', function ($http, $q, $window, $rootScope) {
 
     /**
      *  This response type must be passed to the authorization endpoint using
@@ -39,7 +39,7 @@ angular.module('geboClientApp')
             if (value === REQUIRED_AND_MISSING) {
               requiredAndMissing.push(key);
             }
-        });
+          });
 
         if (requiredAndMissing.length) {
           throw new Error('TokenProvider is insufficiently configured.  Please ' +
@@ -58,6 +58,12 @@ angular.module('geboClientApp')
         };
       };
 
+    /**
+     * Set the configuration options
+     */
+    var _setParams = function(config) {
+        _config = config;
+      };
 
     // TODO: get/set might want to support expiration to reauthenticate
     // TODO: check for localStorage support and otherwise perhaps use other
@@ -70,7 +76,7 @@ angular.module('geboClientApp')
      */
     var _get = function() {
         return localStorage[_config.localStorageName];
-    };
+      };
 
     /**
      * Persist the access token so that it can be retrieved later by.
@@ -79,7 +85,7 @@ angular.module('geboClientApp')
      */
     var _set = function(accessToken) {
         localStorage[_config.localStorageName] = accessToken;
-    };
+      };
 
     /**
      * Verifies that the access token was issued to the current client.
@@ -101,36 +107,37 @@ angular.module('geboClientApp')
      *            case, the callback parameters to `error` callback on `$http` 
      *            are available in the object (`data`, `status`, `headers`, `config`).
      */
-     var _verifyAsync = function(accessToken, verifier) {
+    var _verifyAsync = function(accessToken) {
         var deferred = $q.defer();
-        _config.verifyFunc(_config, accessToken, deferred, verifier);
+//        _config.verifyFunc(_config, accessToken, deferred, verifier);
+        _verify(accessToken, deferred);
         return deferred.promise;
-     };
+      };
 
-     /**
-      * Verifies an access token asynchronously.
-      *
-      * @param extraParams An access token received from the authorization server.
-      * @param popupOptions Settings for the display of the popup.
-      *
-      * @returns {Promise} Promise that will be resolved when the authorization
-      *                    server has verified that thetoken is valid, and we've
-      *                    verified that the token is passed back has audience
-      *                    that matches our client ID (to prevent the Confused
-      *                    Deputy Problem).
-      *
-      *  If there's an error verifying the token, the promise is rejected with an
-      *  object identifying the `name` error in the name member. The `name` can 
-      *  be either:
-      *
-      *    - `invalid_audience`: The audience didn't match our client ID.
-      *    - `error_response`: The server responded with an error, typically
-      *                        because the token was invalid.  In this
-      *                        case, the callback parameters to `error` callback
-      *                        on `$http` are available in the object (`data`,
-      *                        `status`, `headers`, `config`).
-      */
-     var getTokenByPopup = function(extraParams, popupOptions) {
+    /**
+     * Verifies an access token asynchronously.
+     *
+     * @param extraParams An access token received from the authorization server.
+     * @param popupOptions Settings for the display of the popup.
+     *
+     * @returns {Promise} Promise that will be resolved when the authorization
+     *                    server has verified that thetoken is valid, and we've
+     *                    verified that the token is passed back has audience
+     *                    that matches our client ID (to prevent the Confused
+     *                    Deputy Problem).
+     *
+     *  If there's an error verifying the token, the promise is rejected with an
+     *  object identifying the `name` error in the name member. The `name` can 
+     *  be either:
+     *
+     *    - `invalid_audience`: The audience didn't match our client ID.
+     *    - `error_response`: The server responded with an error, typically
+     *                        because the token was invalid.  In this
+     *                        case, the callback parameters to `error` callback
+     *                        on `$http` are available in the object (`data`,
+     *                        `status`, `headers`, `config`).
+     */
+    var getTokenByPopup = function(extraParams, popupOptions) {
         popupOptions = angular.extend({
             name: 'AuthPopup',
             openParams: {
@@ -139,29 +146,29 @@ angular.module('geboClientApp')
                 resizable: true,
                 scrollbars: true,
                 status: true
-            }
-          }, popupOptions);
+              }
+            }, popupOptions);
 
         var deferred = $q.defer(),
             params = angular.extend(_getParams(), extraParams),
             url = _config.authorizationEndpoint + '?' + objectToQueryString(params);
 
         var formatPopupOptions = function(options) {
-        var pairs = [];
-        angular.forEach(options, function(value, key) {
-            if (value || value === 0) {
-              value = value === true ? 'yes' : value;
-              pairs.push(key + '=' + value);
-            }
-        });
-        
-        return pairs.join(',');
-     };
+            var pairs = [];
+            angular.forEach(options, function(value, key) {
+                if (value || value === 0) {
+                  value = value === true ? 'yes' : value;
+                  pairs.push(key + '=' + value);
+                }
+              });
 
-     var popup = window.open(
-        url,
-        popupOptions.name,
-        formatPopupOptions(popupOptions.openParams));
+            return pairs.join(',');
+          };
+
+        var popup = window.open(
+            url,
+            popupOptions.name,
+            formatPopupOptions(popupOptions.openParams));
 
         // TODO: binding occurs for each reauthentication,
         // leading to leaks for long-running apps.
@@ -181,8 +188,8 @@ angular.module('geboClientApp')
           // TODO: reject deferred if the popup was closed without
           // a message being delivered + maybe offer a timeout
 
-          return deferred.promise;
-        }
+        return deferred.promise;
+      };
 
 
     /**
@@ -218,15 +225,54 @@ angular.module('geboClientApp')
     };    // Service logic
     // ...
 
-    var meaningOfLife = 42;
+    /**
+     * Verify the user is still authenticated
+     */
+    var _verify = function(accessToken, deferred, next) {
+        $http({
+            method: 'GET',
+            url: _config.authorizationEndpoint,
+            params: {
+                access_token: accessToken,
+////                        callback: '?',
+////                        token_type: 'bearer',
+              }
+            }).
+          success(function(data) {
+              // It looks like the client needs to send its
+              // ID here. That isn't happening at the moment,
+              // hence all the commented stuff.
+//              if (data.audience === config.clientId) {
+//                console.log(data);
+//                verifier.authenticate(data);
+                deferred.resolve(data);
+////              } else {
+////                deferred.reject({name: 'invalid_audience'});
+////              }
+                if (next !== undefined) {
+                  next();
+                }
+              }).
+          error(function(data, status, headers, config) {
+              deferred.reject({
+                name: 'error_response',
+                data: data,
+                status: status,
+                headers: headers,
+                config: config
+              });
+            });
+      };
 
-    // Public API here
+    /**
+     * API
+     */
     return {
       get: _get,
       getParams: _getParams,
+      verify: _verify,
+      verifyAsync: _verifyAsync,
       set: _set,
-      someMethod: function () {
-        return meaningOfLife;
-      }
+      setParams: _setParams,
     };
   });

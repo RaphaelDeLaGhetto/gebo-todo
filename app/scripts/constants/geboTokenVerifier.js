@@ -2,12 +2,12 @@
 
 angular.module('geboClientApp').
 
-  constant('GeboTokenVerifier', function(config, accessToken, deferred, verifier) {
+  constant('GeboTokenVerifier', function(config, accessToken, deferred) {
     var $injector = angular.injector(['ng']);
 
     return $injector.invoke(['$http', '$rootScope', function($http, $rootScope) {
       var verificationEndpoint = 'http://localhost:3000/api/userinfo';
-      
+
       $rootScope.$apply(function() {
         $http({
             method: 'GET',

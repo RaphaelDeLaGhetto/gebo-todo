@@ -10,8 +10,8 @@ angular.module('geboClientApp')
         $http.get('/test').success(function(data) {
                 $scope.entries = data;
                 callback();
-        });
-    };
+              });
+      };
 
     /**
      * Allow gebo-client access to the gebo user's resources
