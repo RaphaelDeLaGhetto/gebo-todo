@@ -29,7 +29,6 @@ angular.module('geboClientApp')
     //       the token if it manages to change the location of the parent. (See:
     //       https://developer.mozilla.org/en/docs/DOM/window.postMessage#Security_concerns)
 
-//    console.log('CallbackCtrl');
     window.opener.postMessage(params, '*');
     window.close();
 

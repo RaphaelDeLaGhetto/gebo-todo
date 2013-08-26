@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .factory('Token', function ($http, $q, $window, $rootScope) {
+  .factory('Token', function ($http, $q, $window, $rootScope, $resource) {
 
     /**
      *  This response type must be passed to the authorization endpoint using
@@ -22,8 +22,8 @@ angular.module('geboClientApp')
       clientId: REQUIRED_AND_MISSING,
       redirectUri: REQUIRED_AND_MISSING,
       authorizationEndpoint: REQUIRED_AND_MISSING,
+      verificationEndpoint: REQUIRED_AND_MISSING,
       localStorageName: 'accessToken',
-      verifyFunc: REQUIRED_AND_MISSING,
       scopes: []
     };
 
@@ -36,15 +36,15 @@ angular.module('geboClientApp')
         var requiredAndMissing = [];
 
         angular.forEach(_config, function(value, key) {
-            if (value === REQUIRED_AND_MISSING) {
+            if (value === REQUIRED_AND_MISSING || value === undefined) {
               requiredAndMissing.push(key);
             }
           });
 
         if (requiredAndMissing.length) {
-          throw new Error('TokenProvider is insufficiently configured.  Please ' +
-                          'configure the following options using ' +
-                          'TokenProvider.extendConfig: ' + requiredAndMissing.join(', '));
+          throw new Error('Token is insufficiently configured. Please ' +
+                          'configure the following options: ' +
+                          requiredAndMissing.join(', '));
         }
 
         // TODO: Facebook uses comma-delimited scopes.
@@ -75,7 +75,8 @@ angular.module('geboClientApp')
      * @returns {string} The access token.
      */
     var _get = function() {
-        return localStorage[_config.localStorageName];
+        return localStorage.getItem(_config.localStorageName);
+//        return localStorage[_config.localStorageName];
       };
 
     /**
@@ -84,7 +85,8 @@ angular.module('geboClientApp')
      * @param accessToken
      */
     var _set = function(accessToken) {
-        localStorage[_config.localStorageName] = accessToken;
+        localStorage.setItem(_config.localStorageName, accessToken);
+//        localStorage[_config.localStorageName] = accessToken;
       };
 
     /**
@@ -109,7 +111,6 @@ angular.module('geboClientApp')
      */
     var _verifyAsync = function(accessToken) {
         var deferred = $q.defer();
-//        _config.verifyFunc(_config, accessToken, deferred, verifier);
         _verify(accessToken, deferred);
         return deferred.promise;
       };
@@ -137,7 +138,7 @@ angular.module('geboClientApp')
      *                        on `$http` are available in the object (`data`,
      *                        `status`, `headers`, `config`).
      */
-    var getTokenByPopup = function(extraParams, popupOptions) {
+    var _getTokenByPopup = function(extraParams, popupOptions) {
         popupOptions = angular.extend({
             name: 'AuthPopup',
             openParams: {
@@ -151,7 +152,7 @@ angular.module('geboClientApp')
 
         var deferred = $q.defer(),
             params = angular.extend(_getParams(), extraParams),
-            url = _config.authorizationEndpoint + '?' + objectToQueryString(params);
+            url = _config.authorizationEndpoint + '?' + _objectToQueryString(params);
 
         var formatPopupOptions = function(options) {
             var pairs = [];
@@ -191,17 +192,6 @@ angular.module('geboClientApp')
         return deferred.promise;
       };
 
-
-    /**
-     * Copy all of the configExtenstions to _config
-     *
-     * @param {Object} A flat object with configuration options
-     */
-    this.extendConfig = function(configExtension) {
-      _config = angular.extend(_config, configExtension);
-    };
-
-
     /**
      * Given an flat object, return an URL-friendly query string.  Note
      * that for a given object, the return value may be.
@@ -209,59 +199,44 @@ angular.module('geboClientApp')
      * @example
      * <pre>
      *    // returns 'color=red&size=large'
-     *    objectToQueryString({color: 'red', size: 'large'})
+     *    _objectToQueryString({color: 'red', size: 'large'})
      * </pre>
      *
      * @param {Object} A flat object containing keys for a query string.
      * 
      * @returns {string} An URL-friendly query string.
      */
-    var objectToQueryString = function(obj) {
+    var _objectToQueryString = function(obj) {
       var str = [];
       angular.forEach(obj, function(value, key) {
         str.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
       });
       return str.join('&');
-    };    // Service logic
-    // ...
+    };
 
     /**
      * Verify the user is still authenticated
      */
-    var _verify = function(accessToken, deferred, next) {
-        $http({
-            method: 'GET',
-            url: _config.authorizationEndpoint,
-            params: {
-                access_token: accessToken,
-////                        callback: '?',
-////                        token_type: 'bearer',
-              }
-            }).
-          success(function(data) {
-              // It looks like the client needs to send its
-              // ID here. That isn't happening at the moment,
-              // hence all the commented stuff.
-//              if (data.audience === config.clientId) {
-//                console.log(data);
-//                verifier.authenticate(data);
+    var _verify = function(accessToken, deferred) {
+
+        var Token = $resource(_config.verificationEndpoint,
+                        { access_token: accessToken },
+                        { verify: { method: 'GET' }});
+
+
+        var data = Token.verify(
+            function() {
                 deferred.resolve(data);
-////              } else {
-////                deferred.reject({name: 'invalid_audience'});
-////              }
-                if (next !== undefined) {
-                  next();
-                }
-              }).
-          error(function(data, status, headers, config) {
-              deferred.reject({
-                name: 'error_response',
-                data: data,
-                status: status,
-                headers: headers,
-                config: config
-              });
-            });
+              },
+            function(data, status, headers, config) {
+                  deferred.reject({
+                    name: 'error_response',
+                    data: data,
+                    status: status,
+                    headers: headers,
+                    config: config
+                  });
+                });
       };
 
     /**
@@ -269,7 +244,9 @@ angular.module('geboClientApp')
      */
     return {
       get: _get,
+      getTokenByPopup: _getTokenByPopup,
       getParams: _getParams,
+      objectToQueryString: _objectToQueryString,
       verify: _verify,
       verifyAsync: _verifyAsync,
       set: _set,

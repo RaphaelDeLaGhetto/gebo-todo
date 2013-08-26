@@ -29,25 +29,17 @@ describe('Controller: MainCtrl', function () {
         $httpBackend.verifyNoOutstandingRequest();
     });
 
-    it('should have no entries initially', function() {
-        expect(scope.entries.length).toBe(0);
-    });
+//    it('should have no entries initially', function() {
+//        expect(scope.entries.length).toBe(0);
+//    });
 
-    it('should load entries with HTTP', function() {
-        $httpBackend.expectGET('/test');
-        MainCtrl.load(function() {
-            expect(Object.keys(scope.entries).length).toBe(1);
-            expect(scope.entries.name).toBe('dan');
-        });
-        $httpBackend.flush();
-    });
-
-//    it ('should make a successful HTTP request', function() {
-//        expect(scope.name).toBe('dan');
+//    it('should load entries with HTTP', function() {
+//        $httpBackend.expectGET('/test');
+//        MainCtrl.load(function() {
+//            expect(Object.keys(scope.entries).length).toBe(1);
+//            expect(scope.entries.name).toBe('dan');
+//        });
 //        $httpBackend.flush();
 //    });
 
-//  it('should attach a list of awesomeThings to the scope', function () {
-//    expect(scope.awesomeThings.length).toBe(3);
-//  });
 });

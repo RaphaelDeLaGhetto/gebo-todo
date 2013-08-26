@@ -4,30 +4,38 @@ describe('Service: Token', function () {
 
     var CLIENT_ID = 'abc123',
         REDIRECT_URI = 'http://myhost.com',
-        AUTHORIZATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
+        AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
+        VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
  
     // instantiate service
     var token,
-        verifier,
         $httpBackend;
 
     beforeEach(function() {
         module('geboClientApp');
-        inject(function (_Token_, Verifier, $injector) {
+        inject(function (_Token_, $injector) {
             token = _Token_;
-            verifier = Verifier;
 
             $httpBackend = $injector.get('$httpBackend');
-            $httpBackend.when('GET', AUTHORIZATION_ENDPOINT + 
+
+            $httpBackend.when('GET', VERIFICATION_ENDPOINT + 
                     '?access_token=' + ACCESS_TOKEN).respond({
                 id: '1',
                 name: 'dan',
                 email: 'dan@email.com',
                 scope: ['*'],
             });
+
+//            $httpBackend.when('GET', AUTHORIZATION_ENDPOINT + 
+//                    '?access_token=' + ACCESS_TOKEN).respond({
+//                id: '1',
+//                name: 'dan',
+//                email: 'dan@email.com',
+//                scope: ['*'],
+//            });
         })
     });
   
@@ -47,10 +55,10 @@ describe('Service: Token', function () {
   
         it('should thrown an exception if not initialized', function() {
             expect(function() { token.getParams(); }).toThrow(
-                    new Error('TokenProvider is insufficiently configured.  ' +
-                            'Please configure the following options using ' +
-                            'TokenProvider.extendConfig: clientId, redirectUri, ' +
-                            'authorizationEndpoint, verifyFunc'));
+                    new Error('Token is insufficiently configured. ' +
+                            'Please configure the following options: ' +
+                            'clientId, redirectUri, ' +
+                            'authorizationEndpoint, verificationEndpoint'));
         });
 
         it('should return an object if initialized', function() {
@@ -58,8 +66,8 @@ describe('Service: Token', function () {
               clientId: CLIENT_ID,
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              verificationEndpoint: VERIFICATION_ENDPOINT,
               localStorageName: 'accessToken',
-              verifyFunc: verifier.verify,
               scopes: SCOPES
             });
 
@@ -81,15 +89,15 @@ describe('Service: Token', function () {
               clientId: CLIENT_ID,
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              verificationEndpoint: VERIFICATION_ENDPOINT,
               localStorageName: 'accessToken',
-              verifyFunc: verifier.verify,
               scopes: SCOPES
             });
         });
 
 
         it('should return a promise', function() {
-            $httpBackend.expectGET(AUTHORIZATION_ENDPOINT + 
+            $httpBackend.expectGET(VERIFICATION_ENDPOINT + 
                     '?access_token=' + ACCESS_TOKEN); 
             expect(token.verifyAsync(ACCESS_TOKEN)).toBeDefined();
             $httpBackend.flush();
@@ -105,18 +113,115 @@ describe('Service: Token', function () {
               clientId: CLIENT_ID,
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              verificationEndpoint: VERIFICATION_ENDPOINT,
               localStorageName: 'accessToken',
-              verifyFunc: verifier.verify,
               scopes: SCOPES
             });
         });
 
-        it('should do something', inject(function($q) {
-            $httpBackend.expectGET(AUTHORIZATION_ENDPOINT + 
+        it('should simulate a promise', inject(function($q, $rootScope) {
+            $httpBackend.expectGET(VERIFICATION_ENDPOINT + 
                     '?access_token=' + ACCESS_TOKEN); 
-            token.verify(ACCESS_TOKEN, $q.defer());
+
+            var verificationData;
+            var deferred = $q.defer();
+            var promise = deferred.promise;
+
+            promise.then(function(data) { verificationData = data; });
+
+            token.verify(ACCESS_TOKEN, deferred);
+
+            // Simulate resolving of promise
+            
+//
+//            deferred.resolve();
+//            
+//            expect(verificationData).toBe(undefined);
+
             $httpBackend.flush();
         }));
     });
 
+    /**
+     * get/set 
+     */
+    describe('get/set', function() {
+
+        beforeEach(function() {
+            var store = {};
+
+            spyOn(localStorage, 'getItem').andCallFake(function(key) {
+                return store[key];
+            });
+
+            spyOn(localStorage, 'setItem').andCallFake(function(key, value) {
+                return store[key] = value + '';
+            });
+
+            spyOn(localStorage, 'clear').andCallFake(function(key, value) {
+                return store = {}; 
+            });
+            
+            spyOn(localStorage, 'removeItem').andCallFake(function(key, value) {
+                delete store[key]; 
+            });
+
+            token.setParams({
+              clientId: CLIENT_ID,
+              redirectUri: REDIRECT_URI,
+              authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              verificationEndpoint: VERIFICATION_ENDPOINT,
+              localStorageName: 'accessToken',
+              scopes: SCOPES
+            });
+          });
+
+        it('should return undefined if nothing stored in localStorage', function() {
+            expect(token.get()).toBe(undefined);
+            expect(localStorage.getItem).toHaveBeenCalled();
+        });
+
+        it('should return the value stored in localStorage', function() {
+            expect(token.get()).toBe(undefined);
+            expect(localStorage.getItem).toHaveBeenCalled();
+            token.set('1234');
+            expect(localStorage.setItem).toHaveBeenCalled();
+            expect(token.get()).toBe('1234');
+            expect(localStorage.getItem).toHaveBeenCalled();
+        });
+
+        it('should overwrite the value stored in localStorage', function() {
+            expect(token.get()).toBe(undefined);
+            expect(localStorage.getItem).toHaveBeenCalled();
+            token.set('1234');
+            expect(localStorage.setItem).toHaveBeenCalled();
+            expect(token.get()).toBe('1234');
+            expect(localStorage.getItem).toHaveBeenCalled();
+            token.set('5678');
+            expect(localStorage.setItem).toHaveBeenCalled();
+            expect(token.get()).toBe('5678');
+            expect(localStorage.getItem).toHaveBeenCalled();
+         });
+
+    });
+
+    /**
+     * objectToQueryString
+     */
+    describe('objectToQueryString', function() {
+        it('should take an object and spit out a query string', function() {
+           var obj = {
+                    response_type: "token", 
+                    client_id: CLIENT_ID, 
+                    redirect_uri: REDIRECT_URI,
+                    scope: SCOPES 
+               }; 
+           expect(token.objectToQueryString(obj)).toBe(
+                                'response_type=token&client_id=' + 
+                                CLIENT_ID +
+                                '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
+                                '&scope=' + SCOPES);
+        });
+
+    }); 
 });
