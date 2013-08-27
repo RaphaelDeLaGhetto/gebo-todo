@@ -127,7 +127,8 @@ describe('Service: Token', function () {
             expect(token.verifyAsync(ACCESS_TOKEN)).toBeDefined();
             $httpBackend.flush();
         });
-    });
+
+   });
 
     /**
      * verify
@@ -167,6 +168,22 @@ describe('Service: Token', function () {
             $rootScope.$apply();
 
             expect(verificationData).toEqual(VERIFICATION_DATA);
+            $httpBackend.flush();
+        }));
+
+        it('should save the verification data', inject(function($q, $rootScope) {
+            $httpBackend.expectGET(VERIFICATION_ENDPOINT + 
+                    '?access_token=' + ACCESS_TOKEN); 
+
+            var deferred = $q.defer();
+            token.verify(ACCESS_TOKEN, deferred, function() {
+                var data = token.data();
+                expect(data.name).toEqual(VERIFICATION_DATA.name);
+                expect(data.email).toEqual(VERIFICATION_DATA.email);
+                expect(data.id).toEqual(VERIFICATION_DATA.id);
+                expect(data.scopes).toEqual(VERIFICATION_DATA.scopes);
+            });
+
             $httpBackend.flush();
         }));
     });
@@ -249,6 +266,7 @@ describe('Service: Token', function () {
             token.clear();
             expect(localStorage.removeItem).toHaveBeenCalled();
             expect(token.get()).toBe(undefined);
+            expect(token.data()).toEqual({});
         });
     });
 });

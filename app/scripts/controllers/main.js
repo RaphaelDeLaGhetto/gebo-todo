@@ -50,7 +50,7 @@ angular.module('geboClientApp')
      */
     $scope.authenticate = function() {
 
-      var extraParams = $scope.askApproval ? { approval_prompt: 'force' } : {};
+      var extraParams = {};//$scope.askApproval ? { approval_prompt: 'force' } : {};
       Token.getTokenByPopup(extraParams)
         .then(function(params) {
           // Success getting token from popup.

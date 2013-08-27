@@ -4,6 +4,11 @@ angular.module('geboClientApp')
   .factory('Token', function ($http, $q, $window, $rootScope, $resource) {
 
     /**
+     * This the data returned on verification.
+     */
+    var _data = {};
+
+    /**
      *  This response type must be passed to the authorization endpoint using
      *  the implicit grant flow (4.2.1 of RFC 6749).
      */
@@ -90,9 +95,11 @@ angular.module('geboClientApp')
       };
 
     /**
-     * Remove token from local storage
+     * Remove token from local storage and clear
+     * authentication data
      */
     var _clear = function() {
+        _data = {};
         localStorage.removeItem(_config.localStorageName);
       };
 
@@ -224,7 +231,7 @@ angular.module('geboClientApp')
     /**
      * Verify the user is still authenticated
      */
-    var _verify = function(accessToken, deferred) {
+    var _verify = function(accessToken, deferred, next) {
 
         var Token = $resource(_config.verificationEndpoint,
                         { access_token: accessToken },
@@ -233,7 +240,12 @@ angular.module('geboClientApp')
 
         Token.verify(
             function(data) {
+                _data = data;
                 deferred.resolve(data);
+
+                if (next) {
+                  next();
+                }
               },
             function(data, status, headers, config) {
                   deferred.reject({
@@ -251,6 +263,9 @@ angular.module('geboClientApp')
      */
     return {
       clear: _clear,
+      data: function() {
+              return _data;
+            },
       get: _get,
       getTokenByPopup: _getTokenByPopup,
       getParams: _getParams,
