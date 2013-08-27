@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
   </head>
-  <body ng-app="geboClientApp">
+  <body ng-app="geboClientApp" ng-controller="MainCtrl">
     <!--[if lt IE 7]>
       <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
     <![endif]-->
@@ -24,31 +24,43 @@
       <script src="components/json3/lib/json3.min.js"></script>
     <![endif]-->
 
-    <!-- Add authenticated site or application content here -->
-    <!--
-    <div ng-show="accessToken" style="display: none">
-        <div>Hello, world!</div>
-        <div class="container" ng-view></div>
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <a class="brand">gebo-client</a>
+                <div ng-show="verified">
+                    <ul class="nav pull-right">
+                        <li><a>Hello, {{username}}</a></li>
+                        <li><a ng-click="deauthenticate()">Goodbye, gebo</a></li>
+                    </ul>
+                </div>
+                <div ng-show="!verified">
+                    <ul class="nav">
+                        <li><a>Will you allow gebo-client access to your gebo resources?</a></li>
+                        <li><a ng-click="authenticate()">Yes</a></li>
+                    </ul>
+                 </div>
+            </div>
+        </div>
     </div>
-    -->
+
     <!-- Authenticate -->
-    <div class="container" ng-controller="MainCtrl">
-        <div class="hero-unit">
-                <h1>Word up, {{username}}</h1>
-            <p>Do you want to allow gebo-client access to your gebo resources?</p>
-    
-            <div>
-                <button ng-click="authenticate()">Allow</button>
-            </div>
-     
-            <div ng-show="accessToken" style="display: none">
-                <h3>You have allowed access</h3>
-    
-                <h4>Access token</h4>
-                <pre>{{accessToken}}</pre>
-    
-                <div class="container" ng-view></div>
-            </div>
+    <div class="hero-unit">
+        <h1>Word up, {{username}}</h1>
+        <p>Do you want to allow gebo-client access to your gebo resources?</p>
+
+        <div>
+            <button ng-click="authenticate()">Allow</button>
+        </div>
+ 
+        <div ng-show="accessToken" style="display: none">
+            <h3>You have allowed access</h3>
+
+            <h4>Access token</h4>
+            <pre>{{accessToken}}</pre>
+
+            <!-- Add authenticated site or application content here -->
+            <div class="container" ng-view></div>
         </div>
     </div>
 

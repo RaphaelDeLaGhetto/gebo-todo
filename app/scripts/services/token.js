@@ -90,6 +90,13 @@ angular.module('geboClientApp')
       };
 
     /**
+     * Remove token from local storage
+     */
+    var _clear = function() {
+        localStorage.removeItem(_config.localStorageName);
+      };
+
+    /**
      * Verifies that the access token was issued to the current client.
      *
      * @param accessToken An access token received from the authorization server.
@@ -224,8 +231,8 @@ angular.module('geboClientApp')
                         { verify: { method: 'GET' }});
 
 
-        var data = Token.verify(
-            function() {
+        Token.verify(
+            function(data) {
                 deferred.resolve(data);
               },
             function(data, status, headers, config) {
@@ -243,6 +250,7 @@ angular.module('geboClientApp')
      * API
      */
     return {
+      clear: _clear,
       get: _get,
       getTokenByPopup: _getTokenByPopup,
       getParams: _getParams,

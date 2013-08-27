@@ -39,12 +39,12 @@ describe('Controller: MainCtrl', function () {
                 $scope: scope,
                 Token: token
             });
-
-            $httpBackend = $injector.get('$httpBackend');
-            $httpBackend.when('GET', VERIFICATION_ENDPOINT +
-                    '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
+//            $httpBackend = $injector.get('$httpBackend');
         });
 
+//        $httpBackend.whenGET(VERIFICATION_ENDPOINT +
+//                '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
+  
         /**
          * Initialize the Token service
          */
@@ -56,26 +56,26 @@ describe('Controller: MainCtrl', function () {
             localStorageName: LOCAL_STORAGE_NAME,
             scopes: SCOPES
         });
-
+ 
         var store = {};
         spyOn(token, 'get').andCallFake(function() {
             return store[LOCAL_STORAGE_NAME];
         });
-
+ 
         spyOn(token, 'set').andCallFake(function(tokenString) {
             store[LOCAL_STORAGE_NAME] = tokenString;
         });
 
-        spyOn(token, 'verifyAsync').andCallFake(function(token) {
-            return $q.defer().promise;
+        spyOn(token, 'clear').andCallFake(function(tokenString) {
+            delete store[LOCAL_STORAGE_NAME];
         });
-
-     });
-
-    afterEach(function() {
-        $httpBackend.verifyNoOutstandingExpectation();
-        $httpBackend.verifyNoOutstandingRequest();
+ 
     });
+
+//    afterEach(function() {
+//        $httpBackend.verifyNoOutstandingExpectation();
+//        $httpBackend.verifyNoOutstandingRequest();
+//    });
 
     /**
      * Has this client already authenticated?
@@ -87,6 +87,13 @@ describe('Controller: MainCtrl', function () {
                     $scope: scope,
                     Token: token
             });
+
+            spyOn(token, 'verifyAsync').andCallFake(function(token) {
+                var verificationData;
+                var deferred = $q.defer();
+                deferred.resolve(VERIFICATION_DATA);
+                return deferred.promise;
+            });
         }));
 
         it('should look for a locally stored token', function() {
@@ -94,8 +101,7 @@ describe('Controller: MainCtrl', function () {
            expect(scope.accessToken).toBe(undefined);
         });
 
-        it('should verify a locally stored token', inject(function($controller) {
-            $httpBackend.expectGET(VERIFICATION_ENDPOINT + '?access_token=' + ACCESS_TOKEN);
+        it('should verify a locally stored token', inject(function($controller, $rootScope) {
             token.set(ACCESS_TOKEN);
             var ctrl = $controller('MainCtrl', {
                     $scope: scope,
@@ -106,11 +112,82 @@ describe('Controller: MainCtrl', function () {
             expect(scope.accessToken).toBe(ACCESS_TOKEN);
             expect(token.verifyAsync).toHaveBeenCalled();
 
-            $httpBackend.flush();
+            expect(scope.verified).toBe(false);
+            expect(scope.username).toBe(undefined);
+            $rootScope.$apply();
+            expect(scope.verified).toBe(true);
+            expect(scope.username).toBe('dan');
          }));
  
     });
 
+    /**
+     * authenticate
+     */
+    describe('authenticate', function() {
+        beforeEach(function() {
+            spyOn(token, 'verifyAsync').andCallFake(function(token) {
+                var deferred = $q.defer();
+                deferred.resolve(VERIFICATION_DATA);
+                return deferred.promise;
+            });
+
+            spyOn(token, 'getTokenByPopup').andCallFake(function() {
+                var deferred = $q.defer();
+                deferred.resolve({ access_token: ACCESS_TOKEN });
+                return deferred.promise;
+            });
+        });
+
+        it ('should store the token in local storage', inject(function($rootScope) {
+            scope.authenticate();
+
+            expect(token.getTokenByPopup).toHaveBeenCalled();
+            $rootScope.$apply();
+            expect(token.verifyAsync).toHaveBeenCalled();
+            expect(token.set).toHaveBeenCalled();
+
+            expect(scope.verified).toBe(true);
+            expect(scope.username).toBe('dan');
+            expect(scope.accessToken).toBe(ACCESS_TOKEN);
+         }));
+    });
+
+
+    /**
+     * deauthenticate
+     */
+    describe('deauthenticate', function() {
+
+        beforeEach(function() {
+            spyOn(token, 'verifyAsync').andCallFake(function(token) {
+                var deferred = $q.defer();
+                deferred.resolve(VERIFICATION_DATA);
+                return deferred.promise;
+            });
+
+            spyOn(token, 'getTokenByPopup').andCallFake(function() {
+                var deferred = $q.defer();
+                deferred.resolve({ access_token: ACCESS_TOKEN });
+                return deferred.promise;
+            });
+        });
+
+
+        it ('should erase the token from local storage', inject(function($rootScope) {
+            scope.authenticate();
+            $rootScope.$apply();
+            expect(scope.verified).toBe(true);
+            expect(scope.username).toBe('dan');
+            expect(scope.accessToken).toBe(ACCESS_TOKEN);
+
+            scope.deauthenticate();
+            expect(scope.verified).toBe(false);
+            expect(scope.username).toBe(undefined);
+            expect(scope.accessToken).toBe(undefined);
+            expect(token.get()).toBe(undefined);
+         }));
+    });
 
 //    it('should load entries with HTTP', function() {
 //        $httpBackend.expectGET('/test');

@@ -39,7 +39,29 @@ describe('Service: Token', function () {
 //                email: 'dan@email.com',
 //                scope: ['*'],
 //            });
-        })
+        });
+        
+        /**
+         * localStorage spies
+         */
+        var store = {};
+
+        spyOn(localStorage, 'getItem').andCallFake(function(key) {
+            return store[key];
+        });
+
+        spyOn(localStorage, 'setItem').andCallFake(function(key, value) {
+            return store[key] = value + '';
+        });
+
+        spyOn(localStorage, 'clear').andCallFake(function(key, value) {
+            return store = {}; 
+        });
+        
+        spyOn(localStorage, 'removeItem').andCallFake(function(key, value) {
+            delete store[key]; 
+        });
+
     });
   
     afterEach(function() {
@@ -155,24 +177,6 @@ describe('Service: Token', function () {
     describe('get/set', function() {
 
         beforeEach(function() {
-            var store = {};
-
-            spyOn(localStorage, 'getItem').andCallFake(function(key) {
-                return store[key];
-            });
-
-            spyOn(localStorage, 'setItem').andCallFake(function(key, value) {
-                return store[key] = value + '';
-            });
-
-            spyOn(localStorage, 'clear').andCallFake(function(key, value) {
-                return store = {}; 
-            });
-            
-            spyOn(localStorage, 'removeItem').andCallFake(function(key, value) {
-                delete store[key]; 
-            });
-
             token.setParams({
               clientId: CLIENT_ID,
               redirectUri: REDIRECT_URI,
@@ -231,4 +235,20 @@ describe('Service: Token', function () {
         });
 
     }); 
+
+    /**
+     * clear
+     */
+    describe('clear', function() {
+        it('should delete the token in localStorage', function() {
+            expect(token.get()).toBe(undefined);
+            expect(localStorage.getItem).toHaveBeenCalled();
+            token.set('1234');
+            expect(localStorage.setItem).toHaveBeenCalled();
+            expect(token.get()).toBe('1234');
+            token.clear();
+            expect(localStorage.removeItem).toHaveBeenCalled();
+            expect(token.get()).toBe(undefined);
+        });
+    });
 });
