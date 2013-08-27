@@ -12,6 +12,7 @@ angular.module('geboClientApp')
      */
     var baseUrl = document.URL.replace('index.html', '');
     baseUrl = document.URL.replace('#/', '');
+
     Token.setParams({
       clientId: 'abc123',
       redirectUri: baseUrl + 'oauth2callback.html',
@@ -27,14 +28,9 @@ angular.module('geboClientApp')
     $scope.accessToken = Token.get();
 
     if ($scope.accessToken) {
-      var deferred = Token.verifyAsync($scope.accessToken);//.
-//      console.log('deferred');
-//      console.log(deferred);
+      Token.verifyAsync($scope.accessToken).
             then(function(data) {
-              $scope.accessToken = params.access_token;
               $scope.username = data.name;
-
-              Token.set(params.access_token);
             }, function() {
               window.alert('Failed to verify token.');
             });

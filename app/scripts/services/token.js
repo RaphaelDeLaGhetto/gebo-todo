@@ -110,7 +110,6 @@ angular.module('geboClientApp')
      *            are available in the object (`data`, `status`, `headers`, `config`).
      */
     var _verifyAsync = function(accessToken) {
-        console.log(accessToken);
         var deferred = $q.defer();
         _verify(accessToken, deferred);
         return deferred.promise;
@@ -219,7 +218,7 @@ angular.module('geboClientApp')
      * Verify the user is still authenticated
      */
     var _verify = function(accessToken, deferred) {
-        console.log('_verify');
+
         var Token = $resource(_config.verificationEndpoint,
                         { access_token: accessToken },
                         { verify: { method: 'GET' }});

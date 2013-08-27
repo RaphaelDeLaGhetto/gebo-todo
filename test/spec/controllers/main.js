@@ -20,6 +20,7 @@ describe('Controller: MainCtrl', function () {
 
     var MainCtrl,
         $httpBackend,
+        $q,
         scope,
         token;
 
@@ -32,6 +33,7 @@ describe('Controller: MainCtrl', function () {
         inject(function ($controller, $rootScope, $injector) {
             scope = $rootScope.$new();
             token = $injector.get('Token');
+            $q = $injector.get('$q');
 
             MainCtrl = $controller('MainCtrl', {
                 $scope: scope,
@@ -55,7 +57,6 @@ describe('Controller: MainCtrl', function () {
             scopes: SCOPES
         });
 
-//        spyOn(token, 'get');
         var store = {};
         spyOn(token, 'get').andCallFake(function() {
             return store[LOCAL_STORAGE_NAME];
@@ -65,10 +66,9 @@ describe('Controller: MainCtrl', function () {
             store[LOCAL_STORAGE_NAME] = tokenString;
         });
 
-        spyOn(token, 'verifyAsync').andCallFake(function() {
-            return VERIFICATION_DATA;
+        spyOn(token, 'verifyAsync').andCallFake(function(token) {
+            return $q.defer().promise;
         });
-
 
      });
 
