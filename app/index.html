@@ -24,13 +24,17 @@
       <script src="components/json3/lib/json3.min.js"></script>
     <![endif]-->
 
-    <!-- Add your site or application content here -->
+    <!-- Add authenticated site or application content here -->
     <!--
-    <div class="container" ng-view></div>
+    <div ng-show="accessToken" style="display: none">
+        <div>Hello, world!</div>
+        <div class="container" ng-view></div>
+    </div>
     -->
+    <!-- Authenticate -->
     <div class="container" ng-controller="MainCtrl">
         <div class="hero-unit">
-            <h1>Word</h1>
+                <h1>Word up, {{username}}</h1>
             <p>Do you want to allow gebo-client access to your gebo resources?</p>
     
             <div>
@@ -43,10 +47,7 @@
                 <h4>Access token</h4>
                 <pre>{{accessToken}}</pre>
     
-                <div ng-show="expiresIn">
-                    <h2>Expiry</h2>
-                    <p>Expires in {{expiresIn}} seconds.</p>
-                </div>
+                <div class="container" ng-view></div>
             </div>
         </div>
     </div>

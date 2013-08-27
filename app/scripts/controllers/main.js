@@ -5,17 +5,40 @@ angular.module('geboClientApp')
 
     /**
      * Configure OAuth2 for interaction with gebo-server
+     *
+     * The baseUrl stuff seems kind of hacky. The #/ replacement
+     * points the redirect back at the server root, as opposed
+     * to the application route (I think)
      */
     var baseUrl = document.URL.replace('index.html', '');
+    baseUrl = document.URL.replace('#/', '');
     Token.setParams({
       clientId: 'abc123',
       redirectUri: baseUrl + 'oauth2callback.html',
       scopes: ['*'],
       authorizationEndpoint: 'http://localhost:3000/dialog/authorize',
       verificationEndpoint: 'http://localhost:3000\\:3000/api/userinfo',
+      localStorageName: 'gebo-token',
     });
 
+    /**
+     * See if this client already has a token
+     */
     $scope.accessToken = Token.get();
+
+    if ($scope.accessToken) {
+      var deferred = Token.verifyAsync($scope.accessToken);//.
+//      console.log('deferred');
+//      console.log(deferred);
+            then(function(data) {
+              $scope.accessToken = params.access_token;
+              $scope.username = data.name;
+
+              Token.set(params.access_token);
+            }, function() {
+              window.alert('Failed to verify token.');
+            });
+    }
 
     /**
      * Allow gebo-client access to the gebo user's resources
@@ -31,9 +54,9 @@ angular.module('geboClientApp')
           // the confused deputy problem (uh, what's the 
           // confused deputy problem?)
           Token.verifyAsync(params.access_token).
-            then(function() {
+            then(function(data) {
               $scope.accessToken = params.access_token;
-              $scope.expiresIn = params.expires_in;
+              $scope.username = data.name;
 
               Token.set(params.access_token);
             }, function() {
