@@ -10,6 +10,14 @@ describe('Service: Token', function () {
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
  
+
+    var VERIFICATION_DATA = {
+                id: '1',
+                name: 'dan',
+                email: 'dan@email.com',
+                scope: ['*'],
+            };
+
     // instantiate service
     var token,
         $httpBackend;
@@ -22,12 +30,7 @@ describe('Service: Token', function () {
             $httpBackend = $injector.get('$httpBackend');
 
             $httpBackend.when('GET', VERIFICATION_ENDPOINT + 
-                    '?access_token=' + ACCESS_TOKEN).respond({
-                id: '1',
-                name: 'dan',
-                email: 'dan@email.com',
-                scope: ['*'],
-            });
+                    '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
 
 //            $httpBackend.when('GET', AUTHORIZATION_ENDPOINT + 
 //                    '?access_token=' + ACCESS_TOKEN).respond({
@@ -119,6 +122,9 @@ describe('Service: Token', function () {
             });
         });
 
+        // This isn't really doing anything. Revisit
+        // In fact, this test is better located in the MainCtrl
+        // tests, me thinks.
         it('should simulate a promise', inject(function($q, $rootScope) {
             $httpBackend.expectGET(VERIFICATION_ENDPOINT + 
                     '?access_token=' + ACCESS_TOKEN); 
@@ -132,12 +138,13 @@ describe('Service: Token', function () {
             token.verify(ACCESS_TOKEN, deferred);
 
             // Simulate resolving of promise
+            deferred.resolve(VERIFICATION_DATA);
             
-//
-//            deferred.resolve();
-//            
-//            expect(verificationData).toBe(undefined);
+            expect(verificationData).toBe(undefined);
 
+            $rootScope.$apply();
+
+            expect(verificationData).toEqual(VERIFICATION_DATA);
             $httpBackend.flush();
         }));
     });
