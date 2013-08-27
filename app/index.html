@@ -30,7 +30,7 @@
                 <a class="brand">gebo-client</a>
                 <div ng-show="verified">
                     <ul class="nav pull-right">
-                        <li><a>Hello, {{username}}</a></li>
+                        <li><a href="#/token">Hello, {{username}}...</a></li>
                         <li><a ng-click="deauthenticate()">Goodbye, gebo</a></li>
                     </ul>
                 </div>
@@ -45,23 +45,16 @@
     </div>
 
     <!-- Authenticate -->
-    <div class="hero-unit">
-        <h1>Word up, {{username}}</h1>
-        <p>Do you want to allow gebo-client access to your gebo resources?</p>
-
-        <div>
-            <button ng-click="authenticate()">Allow</button>
+    <div class="container" ng-show="!verified">
+        <div class="hero-unit">
+            <h1>Word</h1>
+            <p>You have not allowed gebo-client access to your gebo resources</p>
         </div>
- 
-        <div ng-show="accessToken" style="display: none">
-            <h3>You have allowed access</h3>
+    </div>
 
-            <h4>Access token</h4>
-            <pre>{{accessToken}}</pre>
-
-            <!-- Add authenticated site or application content here -->
-            <div class="container" ng-view></div>
-        </div>
+    <!-- Add authenticated site or application content here -->
+    <div class="container" ng-show="verified">
+        <div class="container" ng-view></div>
     </div>
 
     <script src="components/angular/angular.js"></script>
@@ -74,6 +67,7 @@
     <script src="scripts/controllers/main.js"></script>
     <script src="scripts/controllers/callback.js"></script>
     <script src="scripts/services/token.js"></script>
+    <script src="scripts/controllers/app.js"></script>
     <!-- endbuild -->
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->

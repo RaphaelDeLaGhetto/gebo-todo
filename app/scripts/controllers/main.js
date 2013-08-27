@@ -6,7 +6,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .controller('MainCtrl', function ($scope, Token) {
+  .controller('MainCtrl', function ($scope, Token, $location) {
 
     $scope.verified = false;
 
@@ -17,12 +17,13 @@ angular.module('geboClientApp')
      * points the redirect back at the server root, as opposed
      * to the application route (I think)
      */
-    var baseUrl = document.URL.replace('index.html', '');
-    baseUrl = document.URL.replace('#/', '');
+    var baseUrl = window.location.origin;
+//    var baseUrl = document.URL.replace('index.html', '');
+//    baseUrl = document.URL.replace('#/', '');
 
     Token.setParams({
       clientId: 'abc123',
-      redirectUri: baseUrl + 'oauth2callback.html',
+      redirectUri: baseUrl + '/oauth2callback.html',
       scopes: ['*'],
       authorizationEndpoint: 'http://localhost:3000/dialog/authorize',
       verificationEndpoint: 'http://localhost:3000\\:3000/api/userinfo',
@@ -81,6 +82,7 @@ angular.module('geboClientApp')
         delete $scope.accessToken;
         $scope.verified = false;
         Token.clear();
+        $location.path('/');
       };
   });
 

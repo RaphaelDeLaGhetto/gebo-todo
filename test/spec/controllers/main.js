@@ -20,6 +20,7 @@ describe('Controller: MainCtrl', function () {
 
     var MainCtrl,
         $httpBackend,
+        $location,
         $q,
         scope,
         token;
@@ -34,6 +35,7 @@ describe('Controller: MainCtrl', function () {
             scope = $rootScope.$new();
             token = $injector.get('Token');
             $q = $injector.get('$q');
+            $location = $injector.get('$location');
 
             MainCtrl = $controller('MainCtrl', {
                 $scope: scope,
@@ -186,6 +188,7 @@ describe('Controller: MainCtrl', function () {
             expect(scope.username).toBe(undefined);
             expect(scope.accessToken).toBe(undefined);
             expect(token.get()).toBe(undefined);
+            expect($location.path()).toBe('/');
          }));
     });
 
