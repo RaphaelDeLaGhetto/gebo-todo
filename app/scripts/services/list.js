@@ -19,7 +19,7 @@ angular.module('geboClientApp')
          * @param user
          */
         this.watch = function(user) {
-            this.watchers.push(user); 
+            this.watchers.push(user);
           };
 
         /**
@@ -28,9 +28,9 @@ angular.module('geboClientApp')
          * @param Todo
          */
         this.add = function(description, owner) {
-            this.todos.push(new Todo(description, owner)); 
+            this.todos.push(new Todo(description, owner));
           };
-       };
+      };
 
     /**
      * Todo
@@ -68,7 +68,7 @@ angular.module('geboClientApp')
         this.abandon = function() {
             this.abandoned = new Date();
           };
-     };
+      };
 
     /**
      * Note
@@ -92,17 +92,14 @@ angular.module('geboClientApp')
         this.unstrike = function() {
             this.relevant = true;
           };
-     }
+      };
 
     /**
      * Public API here
      */
     return {
-      addTodo: function(description, owner) {
-            
-        },
       getNewObject: function(description, owner) {
               return new List(description, owner);
-        },
-     };
+            },
+    };
   });
