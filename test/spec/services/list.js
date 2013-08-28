@@ -57,24 +57,234 @@ describe('Service: List', function () {
      */
     describe('Function: List', function() {
 
+        beforeEach(function() {
+            expect(listInstance.todos.length).toBe(0);
+            listInstance.add(DESCRIPTION, OWNER);
+            expect(listInstance.todos.length).toBe(1);
+        });
+
         describe('add', function() {
             it('should add a todo', function() {
-                expect(listInstance.todos.length).toBe(0);
-
                 listInstance.add(DESCRIPTION, OWNER);
-    
+                expect(listInstance.todos[1].description).toBe(DESCRIPTION);
+                expect(listInstance.todos[1].owner).toBe(OWNER);
+                expect(listInstance.todos[1].assignees).toEqual([]);
+                expect(listInstance.todos[1].date).toBeCloseTo(new Date());
+                expect(listInstance.todos[1].deadline).toBe(null);
+                expect(listInstance.todos[1].completed).toBe(null);
+                expect(listInstance.todos[1].abandoned).toBe(null);
+                expect(listInstance.todos[1].notes).toEqual([]);
+            });
+         });
+
+        describe('destroy', function() {
+            it('should remove a todo from the list', function() {
+                listInstance.destroy(0);
+                expect(listInstance.todos.length).toBe(0);
+                expect(listInstance.todos[0]).toBe(undefined);
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.destroy(1);
                 expect(listInstance.todos.length).toBe(1);
-                expect(listInstance.todos[0].description).toBe(DESCRIPTION);
-                expect(listInstance.todos[0].owner).toBe(OWNER);
-                expect(listInstance.todos[0].assignees).toEqual([]);
-                expect(listInstance.todos[0].date).toBeCloseTo(new Date());
-                expect(listInstance.todos[0].deadline).toBe(null);
+                listInstance.destroy(-1);
+                expect(listInstance.todos.length).toBe(1);
+             });
+         });
+
+        describe('abandonTodo', function() {
+            it('mark the given todo as abandoned', function() {
+                expect(listInstance.todos[0].abandoned).toBe(null);
+                listInstance.abandonTodo(0);
+                expect(listInstance.todos[0].abandoned).toBeCloseTo(new Date());
+            });
+
+            it('should set abandoned date and nullify completed', function() {
+                listInstance.completeTodo(0);
+                expect(listInstance.todos[0].completed).toBeCloseTo(new Date());
+                expect(listInstance.todos[0].abandoned).toBe(null);
+                listInstance.abandonTodo(0);
+                expect(listInstance.todos[0].abandoned).toBeCloseTo(new Date());
+                expect(listInstance.todos[0].completed).toBe(null);
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.abandonTodo(1);
+                expect(listInstance.todos[1]).toBe(undefined);
+                listInstance.abandonTodo(-1);
+                expect(listInstance.todos[-1]).toBe(undefined);
+             });
+        });
+
+        describe('reopenTodo', function() {
+            it('should set abandoned and completed to null', function() {
+                expect(listInstance.todos[0].abandoned).toBe(null);
+                listInstance.abandonTodo(0);
+                expect(listInstance.todos[0].abandoned).toBeCloseTo(new Date());
+                listInstance.reopenTodo(0);
+                expect(listInstance.todos[0].abandoned).toBe(null);
+
+                expect(listInstance.todos[0].completed).toBe(null);
+                listInstance.completeTodo(0);
+                expect(listInstance.todos[0].completed).toBeCloseTo(new Date());
+                listInstance.reopenTodo(0);
+                expect(listInstance.todos[0].completed).toBe(null);
+             });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.reopenTodo(1);
+                expect(listInstance.todos[1]).toBe(undefined);
+                listInstance.reopenTodo(-1);
+                expect(listInstance.todos[-1]).toBe(undefined);
+             });
+        });
+
+        describe('completeTodo', function() {
+            it('should set completed date', function() {
                 expect(listInstance.todos[0].completed).toBe(null);
                 expect(listInstance.todos[0].abandoned).toBe(null);
-                expect(listInstance.todos[0].notes).toEqual([]);
+                listInstance.completeTodo(0);
+                expect(listInstance.todos[0].completed).toBeCloseTo(new Date());
+                expect(listInstance.todos[0].abandoned).toBe(null);
+            });
+
+            it('should set completed date and nullify abandoned', function() {
+                listInstance.abandonTodo(0);
+                expect(listInstance.todos[0].completed).toBe(null);
+                expect(listInstance.todos[0].abandoned).toBeCloseTo(new Date());
+                listInstance.completeTodo(0);
+                expect(listInstance.todos[0].completed).toBeCloseTo(new Date());
+                expect(listInstance.todos[0].abandoned).toBe(null);
+            });
+
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.completeTodo(1);
+                expect(listInstance.todos[1]).toBe(undefined);
+                listInstance.completeTodo(-1);
+                expect(listInstance.todos[-1]).toBe(undefined);
             });
         });
-    });
+
+        describe('assignTodo', function() {
+            it('should assign a user to a todo', function() {
+                expect(listInstance.todos[0].assignees.length).toBe(0);
+                listInstance.assignTodo(0, OWNER);
+                expect(listInstance.todos[0].assignees.length).toBe(1);
+                expect(listInstance.todos[0].assignees[0].name).toBe('dan');
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.assignTodo(1, OWNER);
+                expect(listInstance.todos[1]).toBe(undefined);
+                listInstance.assignTodo(-1, OWNER);
+                expect(listInstance.todos[-1]).toBe(undefined);
+            });
+        });
+
+        describe('relieveTodo', function() {
+            it('should relieve a user of todo responsibilities', function() {
+                expect(listInstance.todos[0].assignees.length).toBe(0);
+                listInstance.assignTodo(0, OWNER);
+                expect(listInstance.todos[0].assignees.length).toBe(1);
+                expect(listInstance.todos[0].assignees[0].name).toBe('dan');
+                listInstance.relieveTodo(0, 0);
+                expect(listInstance.todos[0].assignees.length).toBe(0);
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.relieveTodo(0, 1);
+                expect(listInstance.todos[0].assignees[1]).toBe(undefined);
+                listInstance.relieveTodo(0, -1);
+                expect(listInstance.todos[0].assignees[-1]).toBe(undefined);
+            });
+        });
+
+
+
+        describe('makeNote', function() {
+            it('should attach a note to a todo', function() {
+                expect(listInstance.todos[0].notes.length).toBe(0);
+                listInstance.makeNote(0, 'Push this back?', OWNER);
+
+                expect(listInstance.todos[0].notes[0].date).toBeCloseTo(new Date());
+                expect(listInstance.todos[0].notes[0].content).toBe('Push this back?');
+                expect(listInstance.todos[0].notes[0].owner).toEqual(OWNER);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(true);
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.makeNote(1, 'Some note');
+                expect(listInstance.todos[1]).toBe(undefined);
+                listInstance.makeNote(-1, 'Some note');
+                expect(listInstance.todos[-1]).toBe(undefined);
+             });
+         });
+        
+        describe('destroyNote', function() {
+            it('should destroy a note attached to a todo', function() {
+                listInstance.makeNote(0, 'Push this back?');
+                expect(listInstance.todos[0].notes.length).toBe(1);
+
+                listInstance.destroyNote(0, 0);
+                expect(listInstance.todos[0].notes.length).toBe(0);
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.destroyNote(0, 1);
+                expect(listInstance.todos[0].notes[1]).toBe(undefined);
+                listInstance.destroyNote(0, -1, 'Some note');
+                expect(listInstance.todos[0].notes[-1]).toBe(undefined);
+             });
+         });
+
+        /**
+         * strikeNote
+         */
+        describe('strikeNote', function() {
+            it('should flag a note as irrelevent', function() {
+                listInstance.makeNote(0, 'Push this back?');
+                expect(listInstance.todos[0].notes.length).toBe(1);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(true);
+
+                listInstance.strikeNote(0, 0);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(false);
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.strikeNote(0, 1);
+                expect(listInstance.todos[0].notes[1]).toBe(undefined);
+                listInstance.strikeNote(0, -1);
+                expect(listInstance.todos[0].notes[-1]).toBe(undefined);
+             });
+         });
+  
+        /**
+         * unstrikeNote
+         */
+        describe('unstrikeNote', function() {
+            it('should flag a note as relevent', function() {
+                listInstance.makeNote(0, 'Push this back?');
+                expect(listInstance.todos[0].notes.length).toBe(1);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(true);
+
+                listInstance.strikeNote(0, 0);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(false);
+
+                listInstance.unstrikeNote(0, 0);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(true);
+             });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.unstrikeNote(0, 1);
+                expect(listInstance.todos[0].notes[1]).toBe(undefined);
+                listInstance.unstrikeNote(0, -1);
+                expect(listInstance.todos[0].notes[-1]).toBe(undefined);
+             });
+         });
+
+ 
+     });
 
     /**
      * The Todo function
@@ -98,6 +308,71 @@ describe('Service: List', function () {
                 expect(listInstance.todos[0].notes.length).toBe(3);
             });
         });
+
+        /**
+         * destroyNote
+         */
+        describe('destroyNote', function() {
+            it('should destroy a note attached to a todo', function() {
+                listInstance.todos[0].makeNote('Push this back?', OWNER);
+                expect(listInstance.todos[0].notes.length).toBe(1);
+
+                listInstance.todos[0].destroyNote(0);
+                expect(listInstance.todos[0].notes.length).toBe(0);
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.todos[0].destroyNote(1);
+                expect(listInstance.todos[0].notes[1]).toBe(undefined);
+                listInstance.destroyNote(-1);
+                expect(listInstance.todos[0].notes[-1]).toBe(undefined);
+             });
+         });
+
+        /**
+         * strikeNote
+         */
+        describe('strikeNote', function() {
+            it('should flag a note as irrelevent', function() {
+                listInstance.todos[0].makeNote('Push this back?', OWNER);
+                expect(listInstance.todos[0].notes.length).toBe(1);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(true);
+
+                listInstance.todos[0].strikeNote(0);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(false);
+            });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.todos[0].strikeNote(1);
+                expect(listInstance.todos[0].notes[1]).toBe(undefined);
+                listInstance.strikeNote(-1);
+                expect(listInstance.todos[0].notes[-1]).toBe(undefined);
+             });
+         });
+  
+        /**
+         * unstrikeNote
+         */
+        describe('unstrikeNote', function() {
+            it('should flag a note as relevent', function() {
+                listInstance.todos[0].makeNote('Push this back?', OWNER);
+                expect(listInstance.todos[0].notes.length).toBe(1);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(true);
+
+                listInstance.todos[0].strikeNote(0);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(false);
+
+                listInstance.todos[0].unstrikeNote(0);
+                expect(listInstance.todos[0].notes[0].relevant).toBe(true);
+             });
+
+            it('should ignore out-of-bound indicies', function() {
+                listInstance.todos[0].unstrikeNote(1);
+                expect(listInstance.todos[0].notes[1]).toBe(undefined);
+                listInstance.todos[0].unstrikeNote(-1);
+                expect(listInstance.todos[0].notes[-1]).toBe(undefined);
+             });
+         });
 
         /**
          * complete
@@ -209,9 +484,9 @@ describe('Service: List', function () {
         });
 
         it('should exist', function() {
+            expect(listInstance.todos[0].notes[0].date).toBeCloseTo(new Date());
             expect(listInstance.todos[0].notes[0].owner).toBe(OWNER);
             expect(listInstance.todos[0].notes[0].content).toBe('some important detail');
-            expect(listInstance.todos[0].notes[0].date).toBeCloseTo(new Date());
         });
 
         /**

@@ -37,9 +37,126 @@ angular.module('geboClientApp')
          * @param int
          */
         this.destroy = function(index) {
+            if (index < 0 || index >= this.todos.length) {
+              return;
+            }
             this.todos.splice(index, 1);
           };
-      };
+
+        /**
+         * Set a todo as completed
+         *
+         * @param int
+         */
+        this.completeTodo = function(index) {
+            if (index < 0 || index >= this.todos.length) {
+              return;
+            }
+            this.todos[index].complete();
+          };
+
+        /**
+         * Set a todo as abandoned
+         *
+         * @param int
+         */
+        this.abandonTodo = function(index) {
+            if (index < 0 || index >= this.todos.length) {
+              return;
+            }
+            this.todos[index].abandon();
+          };
+
+        /**
+         * Reopen completed or abandoned todos
+         *
+         * @param int
+         */
+        this.reopenTodo = function(index) {
+            if (index < 0 || index >= this.todos.length) {
+              return;
+            }
+            this.todos[index].reopen();
+          };
+
+        /**
+         * Add a note to a todo 
+         *
+         * @param string
+         * @param string
+         */
+        this.makeNote = function(index, content, owner) {
+            if (index < 0 || index >= this.todos.length) {
+              return;
+            }
+            this.todos[index].makeNote(content, owner);
+          };
+
+        /**
+         * Remove a note from a todo 
+         *
+         * @param int 
+         * @param int
+         */
+        this.destroyNote = function(todoIndex, noteIndex) {
+            if (todoIndex < 0 || todoIndex >= this.todos.length) {
+              return;
+            }
+            this.todos[todoIndex].destroyNote(noteIndex);
+          };
+
+        /**
+         * Flag a note as irrelevant 
+         *
+         * @param int
+         */
+        this.strikeNote = function(todoIndex, noteIndex) {
+            if (todoIndex < 0 || todoIndex >= this.todos.length) {
+              return;
+            }
+            this.todos[todoIndex].strikeNote(noteIndex);
+          };
+
+        /**
+         * Flag a note as relevant 
+         *
+         * @param int
+         */
+        this.unstrikeNote = function(todoIndex, noteIndex) {
+            if (todoIndex < 0 || todoIndex >= this.todos.length) {
+              return;
+            }
+            this.todos[todoIndex].unstrikeNote(noteIndex);
+          };
+
+        /**
+         * Assign a user to a todo
+         *
+         * @param int
+         * @param Object
+         */
+        this.assignTodo = function(todoIndex, user) {
+            if (todoIndex < 0 || todoIndex >= this.todos.length) {
+              return;
+            }
+            this.todos[todoIndex].assign(user); 
+          };
+
+        /**
+         * Relieve a user of todo responsibilities
+         *
+         * @param int
+         * @param int
+         */
+        this.relieveTodo = function(todoIndex, assigneeIndex) {
+            if (todoIndex < 0 || todoIndex >= this.todos.length) {
+              return;
+            }
+            this.todos[todoIndex].relieve(assigneeIndex); 
+          };
+
+
+       };
 
     /**
      * Todo
@@ -63,6 +180,43 @@ angular.module('geboClientApp')
         this.makeNote = function(content, owner) {
             this.notes.push(new Note(content, owner));
           };
+
+        /**
+         * Remove a note from the notes list
+         *
+         * @param int
+         */
+        this.destroyNote = function(index) {
+            if (index < 0 || index >= this.notes.length) {
+              return;
+            }
+            this.notes.splice(index, 1);
+          };
+
+        /**
+         * Flag a note as irrelevant 
+         *
+         * @param int
+         */
+        this.strikeNote = function(index) {
+            if (index < 0 || index >= this.notes.length) {
+              return;
+            }
+            this.notes[index].strike();
+          };
+
+        /**
+         * Flag a note as relevant 
+         *
+         * @param int
+         */
+        this.unstrikeNote = function(index) {
+            if (index < 0 || index >= this.notes.length) {
+              return;
+            }
+            this.notes[index].unstrike();
+          };
+
 
         /**
          * Set the date this todo was completed
@@ -102,6 +256,9 @@ angular.module('geboClientApp')
          * @params int
          */
         this.relieve = function(index) {
+            if (index < 0 || index >= this.assignees.length) {
+              return;
+            }
             this.assignees.splice(index, 1);
           };
        };

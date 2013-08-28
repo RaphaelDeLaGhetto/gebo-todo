@@ -52,6 +52,10 @@ describe('Controller: AppCtrl', function () {
           localStorageName: 'accessToken',
           scopes: SCOPES
         });
+
+        spyOn(Token, 'data').andCallFake(function(key) {
+            return VERIFICATION_DATA;
+        });
     }));
 
     it('should attach a todo list object to the scope', function () {
@@ -156,7 +160,7 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
          });
 
 
@@ -193,13 +197,13 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
         });
 
         it('should mark a todo as completed on the given list', function() {
             expect(scope.todoLists[0].todos[0].completed).toBe(null);
             expect(scope.todoLists[0].todos[0].abandoned).toBe(null);
-            scope.todoLists[0].todos[0].complete();
+            scope.completeTodo(0, 0);
             expect(scope.todoLists[0].todos[0].completed).toBeCloseTo(new Date());
             expect(scope.todoLists[0].todos[0].abandoned).toBe(null);
         });
@@ -219,7 +223,7 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
         });
 
         it('should mark a todo as abandoned on the given list', function() {
@@ -252,21 +256,21 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
         });
 
         it('should nullify a todo\'s completed status', function() {
-            scope.todoLists[0].todos[1].complete();
-            expect(todoLists[0].todos[1].completed).toBeCloseTo(new Date());
-            scope.todoLists[0].todos[1].reopen();
-            expect(todoLists[0].todos[1].completed).toBe(null);
+            scope.completeTodo(0, 1);
+            expect(scope.todoLists[0].todos[1].completed).toBeCloseTo(new Date());
+            scope.reopenTodo(0, 1);
+            expect(scope.todoLists[0].todos[1].completed).toBe(null);
         });
 
         it('should nullify a todo\'s abandoned status', function() {
-            scope.todoLists[0].todos[1].abandon();
-            expect(todoLists[0].todos[1].abandoned).toBeCloseTo(new Date());
-            scope.todoLists[0].todos[1].reopen();
-            expect(todoLists[0].todos[1].abandoned).toBe(null);
+            scope.abandonTodo(0, 1);
+            expect(scope.todoLists[0].todos[1].abandoned).toBeCloseTo(new Date());
+            scope.reopenTodo(0, 1);
+            expect(scope.todoLists[0].todos[1].abandoned).toBe(null);
         });
      });
 
@@ -285,12 +289,13 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
         });
 
         it('should attach a note to a todo', function() {
             expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
             scope.makeNote(1, 1, 'Should I push this back?');
+
             expect(scope.todoLists[1].todos[1].notes.length).toBe(1);
             expect(scope.todoLists[1].todos[1].notes[0].content).toBe(
                     'Should I push this back?');
@@ -350,7 +355,7 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
 
             expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
             scope.makeNote(1, 1, 'Should I push this back?');
@@ -393,7 +398,7 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
 
             expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
             scope.makeNote(1, 1, 'Should I push this back?');
@@ -438,7 +443,7 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
          });
 
         it('should assign a user to the task', function() {
@@ -474,7 +479,7 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos.length).toBe(2);
             scope.addTodo(1, 'Do this first');
             scope.addTodo(1, 'Do this next');
-            expect(scope.todoLists[1].todos.length).toBe(0);
+            expect(scope.todoLists[1].todos.length).toBe(2);
 
             expect(scope.todoLists[0].todos[0].assignees.length).toBe(0);
             scope.assignTodo(0, 0, VERIFICATION_DATA);
