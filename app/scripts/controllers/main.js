@@ -25,7 +25,9 @@ angular.module('geboClientApp')
       clientId: 'abc123',
       redirectUri: baseUrl + '/oauth2callback.html',
       scopes: ['*'],
+//      authorizationEndpoint: 'http://192.168.1.25:3000/dialog/authorize',
       authorizationEndpoint: 'http://localhost:3000/dialog/authorize',
+//      verificationEndpoint: 'http://192.168.1.25:3000\\:3000/api/userinfo',
       verificationEndpoint: 'http://localhost:3000\\:3000/api/userinfo',
       localStorageName: 'gebo-token',
     });

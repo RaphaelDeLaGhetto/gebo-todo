@@ -83,6 +83,12 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].owner.id).toEqual(VERIFICATION_DATA.id);
             expect(scope.todoLists[0].owner.scopes).toEqual(VERIFICATION_DATA.scopes);
         });
+
+        it('should not add a new todo list if no description is supplied', function() {
+            expect(scope.todoLists.length).toBe(0);
+            scope.create(''); 
+            expect(scope.todoLists.length).toBe(0);
+        });
     });
 
     /**

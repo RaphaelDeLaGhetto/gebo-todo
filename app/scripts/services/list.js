@@ -139,7 +139,7 @@ angular.module('geboClientApp')
             if (todoIndex < 0 || todoIndex >= this.todos.length) {
               return;
             }
-            this.todos[todoIndex].assign(user); 
+            this.todos[todoIndex].assign(user);
           };
 
         /**
@@ -152,11 +152,11 @@ angular.module('geboClientApp')
             if (todoIndex < 0 || todoIndex >= this.todos.length) {
               return;
             }
-            this.todos[todoIndex].relieve(assigneeIndex); 
+            this.todos[todoIndex].relieve(assigneeIndex);
           };
 
 
-       };
+      };
 
     /**
      * Todo
@@ -246,7 +246,7 @@ angular.module('geboClientApp')
          * Assign the task
          */
         this.assign = function(user) {
-            this.assignees.push(user)
+            this.assignees.push(user);
           };
 
         /**
@@ -261,7 +261,7 @@ angular.module('geboClientApp')
             }
             this.assignees.splice(index, 1);
           };
-       };
+      };
 
     /**
      * Note

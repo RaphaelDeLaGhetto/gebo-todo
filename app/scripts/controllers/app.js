@@ -12,6 +12,9 @@ angular.module('geboClientApp')
      * Create a new todo list
      */
     $scope.create = function(description) {
+        if (!description) {
+          return;
+        }
         var list = List.getNewObject(description, Token.data());
         $scope.todoLists.push(list);
       };
@@ -186,6 +189,6 @@ angular.module('geboClientApp')
         if (index < 0 || index >= $scope.todoLists.length) {
           return false;
         }
-        return true; 
+        return true;
       };
-   });
+  });
