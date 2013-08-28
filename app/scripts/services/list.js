@@ -30,6 +30,15 @@ angular.module('geboClientApp')
         this.add = function(description, owner) {
             this.todos.push(new Todo(description, owner));
           };
+
+        /**
+         * Remove a todo to the list
+         *
+         * @param int
+         */
+        this.destroy = function(index) {
+            this.todos.splice(index, 1);
+          };
       };
 
     /**
@@ -38,7 +47,7 @@ angular.module('geboClientApp')
     var Todo = function(description, owner) {
         this.description = description;
         this.owner = owner;
-        this.assignee = null;
+        this.assignees = [];
         this.date = new Date();
         this.deadline =  null;
         this.completed = null;
@@ -60,6 +69,7 @@ angular.module('geboClientApp')
          */
         this.complete = function() {
             this.completed = new Date();
+            this.abandoned = null;
           };
 
         /**
@@ -67,8 +77,34 @@ angular.module('geboClientApp')
          */
         this.abandon = function() {
             this.abandoned = new Date();
+            this.completed = null;
           };
-      };
+
+        /**
+         * Clear the completed and abandoned dates
+         */
+        this.reopen = function() {
+            this.abandoned = null;
+            this.completed = null;
+          };
+
+        /**
+         * Assign the task
+         */
+        this.assign = function(user) {
+            this.assignees.push(user)
+          };
+
+        /**
+         * Relieve an assigned user from task
+         * responsibilities
+         *
+         * @params int
+         */
+        this.relieve = function(index) {
+            this.assignees.splice(index, 1);
+          };
+       };
 
     /**
      * Note

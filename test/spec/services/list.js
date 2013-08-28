@@ -2,8 +2,21 @@
 
 describe('Service: List', function () {
 
-    var OWNER = 'Dan',
-        DESCRIPTION = 'A new thing todo',
+    var OWNER = {
+                id: '1',
+                name: 'dan',
+                email: 'dan@email.com',
+                scope: ['*'],
+            },
+        WATCHER = {
+                id: '2',
+                name: 'yanfen',
+                email: 'yanfen@email.com',
+                scope: ['*'],
+            };
+
+
+    var DESCRIPTION = 'A new thing todo',
         TODO = {
             description: DESCRIPTION,
             owner: OWNER,
@@ -34,7 +47,7 @@ describe('Service: List', function () {
             var list = List.getNewObject(DESCRIPTION, OWNER);
             expect(list.description).toBe(DESCRIPTION);
             expect(list.owner).toBe(OWNER);
-            expect(list.date).toEqual(new Date());
+            expect(list.date).toBeCloseTo(new Date());
             expect(list.watchers).toEqual([]);
         });
     });
@@ -53,8 +66,8 @@ describe('Service: List', function () {
                 expect(listInstance.todos.length).toBe(1);
                 expect(listInstance.todos[0].description).toBe(DESCRIPTION);
                 expect(listInstance.todos[0].owner).toBe(OWNER);
-                expect(listInstance.todos[0].assignee).toBe(null);
-                expect(listInstance.todos[0].date).toEqual(new Date());
+                expect(listInstance.todos[0].assignees).toEqual([]);
+                expect(listInstance.todos[0].date).toBeCloseTo(new Date());
                 expect(listInstance.todos[0].deadline).toBe(null);
                 expect(listInstance.todos[0].completed).toBe(null);
                 expect(listInstance.todos[0].abandoned).toBe(null);
@@ -94,10 +107,19 @@ describe('Service: List', function () {
                 expect(listInstance.todos[0].abandoned).toBe(null);        
                 expect(listInstance.todos[0].completed).toBe(null);        
                 listInstance.todos[0].complete();
-                expect(listInstance.todos[0].completed).toEqual(new Date());        
+                expect(listInstance.todos[0].completed).toBeCloseTo(new Date());        
                 expect(listInstance.todos[0].abandoned).toBe(null);        
             });
-        });
+
+            it('should nullify abandoned if now completed', function() {
+                listInstance.todos[0].abandon();
+                expect(listInstance.todos[0].abandoned).toBeCloseTo(new Date());        
+                expect(listInstance.todos[0].completed).toBe(null);        
+                listInstance.todos[0].complete();
+                expect(listInstance.todos[0].completed).toBeCloseTo(new Date());        
+                expect(listInstance.todos[0].abandoned).toBe(null);        
+            });
+         });
 
         /**
          * abandon
@@ -108,12 +130,73 @@ describe('Service: List', function () {
                 expect(listInstance.todos[0].completed).toBe(null);        
                 listInstance.todos[0].abandon();
                 expect(listInstance.todos[0].completed).toBe(null);
-                expect(listInstance.todos[0].abandoned).toEqual(new Date());        
+                expect(listInstance.todos[0].abandoned).toBeCloseTo(new Date());        
+            });
+
+            it('should nullify completed if now abandoned', function() {
+                listInstance.todos[0].complete();
+                expect(listInstance.todos[0].completed).toBeCloseTo(new Date());        
+                expect(listInstance.todos[0].abandoned).toBe(null);        
+                listInstance.todos[0].abandon();
+                expect(listInstance.todos[0].abandoned).toBeCloseTo(new Date());        
+                expect(listInstance.todos[0].completed).toBe(null);        
+            });
+         });
+
+        /**
+         * reopen
+         */
+        describe('reopen', function() {
+
+            it('should clear the completed date', function() {
+                listInstance.todos[0].complete();
+                expect(listInstance.todos[0].completed).toBeCloseTo(new Date());        
+                expect(listInstance.todos[0].abandoned).toBe(null);        
+                listInstance.todos[0].reopen(); 
+                expect(listInstance.todos[0].completed).toBe(null);        
+                expect(listInstance.todos[0].abandoned).toBe(null);        
+            });
+
+            it('should clear the abandoned date', function() {
+                listInstance.todos[0].abandon();
+                expect(listInstance.todos[0].abandoned).toBeCloseTo(new Date());        
+                expect(listInstance.todos[0].completed).toBe(null);        
+                listInstance.todos[0].reopen(); 
+                expect(listInstance.todos[0].abandoned).toBe(null);        
+                expect(listInstance.todos[0].completed).toBe(null);        
+            });
+         });
+
+        /**
+         * assign
+         */
+        describe('assign', function() {
+            it('should assign a user to the task', function() {
+                expect(listInstance.todos[0].assignees.length).toBe(0);
+                listInstance.todos[0].assign(WATCHER);
+                expect(listInstance.todos[0].assignees.length).toBe(1);
+                listInstance.todos[0].assign(OWNER);
+                expect(listInstance.todos[0].assignees.length).toBe(2);
+                
+                expect(listInstance.todos[0].assignees[0].name).toBe('yanfen');
+                expect(listInstance.todos[0].assignees[1].name).toBe('dan');
             });
         });
 
-
-    });
+        /**
+         * relieve
+         */
+        describe('relieve', function() {
+            it('should relieve a user\'s previously assigned duties', function() {
+                listInstance.todos[0].assign(WATCHER);
+                listInstance.todos[0].assign(OWNER);
+                expect(listInstance.todos[0].assignees.length).toBe(2);
+                listInstance.todos[0].relieve(0);
+                expect(listInstance.todos[0].assignees.length).toBe(1);
+                expect(listInstance.todos[0].assignees[0].name).toBe('dan');
+             });
+        });
+     });
 
     /**
      * The Note function
@@ -128,7 +211,7 @@ describe('Service: List', function () {
         it('should exist', function() {
             expect(listInstance.todos[0].notes[0].owner).toBe(OWNER);
             expect(listInstance.todos[0].notes[0].content).toBe('some important detail');
-            expect(listInstance.todos[0].notes[0].date).toEqual(new Date());
+            expect(listInstance.todos[0].notes[0].date).toBeCloseTo(new Date());
         });
 
         /**

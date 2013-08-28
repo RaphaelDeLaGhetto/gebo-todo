@@ -21,9 +21,23 @@ angular.module('geboClientApp')
      *
      * @param index
      */
-    $scope.delete = function(index) {
-        delete $scope.todoLists[index];
+    $scope.destroy = function(index) {
+        if (index < 0 || index > $scope.todoLists.length - 1) {
+          return;
+        }
+        $scope.todoLists.splice(index, 1);
       };
 
-
+    /**
+     * Add a todo to a list
+     *
+     * @param listIndex
+     * @param description
+     */
+    $scope.addTodo = function(index, description) {
+        if (index < 0 || index > $scope.todoLists.length - 1) {
+          return;
+        }
+ 
+      };
   });
