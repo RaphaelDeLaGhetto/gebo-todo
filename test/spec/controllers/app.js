@@ -25,6 +25,7 @@ describe('Controller: AppCtrl', function () {
         List,
         Token,
         scope,
+        state,
         $httpBackend;
 
     // Initialize the controller and a mock scope
@@ -32,11 +33,13 @@ describe('Controller: AppCtrl', function () {
         scope = $rootScope.$new();
         List = $injector.get('List');
         Token = $injector.get('Token');
+        state = $injector.get('$state');
 
         AppCtrl = $controller('AppCtrl', {
             $scope: scope,
             List: List,
             Token: Token,
+            $state: state,
         });
 
         $httpBackend = $injector.get('$httpBackend');
@@ -56,6 +59,11 @@ describe('Controller: AppCtrl', function () {
         spyOn(Token, 'data').andCallFake(function(key) {
             return VERIFICATION_DATA;
         });
+
+        // ui-router needs this for some reason. Not
+        // sure what's happening
+        $httpBackend.when('GET', 'views/main.html').respond({});
+        $httpBackend.when('GET', 'views/app.html').respond({});
     }));
 
     it('should attach a todo list object to the scope', function () {
@@ -67,6 +75,7 @@ describe('Controller: AppCtrl', function () {
      */
     describe('create', function() {
         beforeEach(function() {
+           // $httpBackend.expectGET('views/main.html');
             $httpBackend.expectGET(VERIFICATION_ENDPOINT + 
                     '?access_token=' + ACCESS_TOKEN); 
             Token.verifyAsync(ACCESS_TOKEN);
@@ -75,7 +84,9 @@ describe('Controller: AppCtrl', function () {
 
         it('should add a new todo list to the list of todos', function() {
             expect(scope.todoLists.length).toBe(0);
-            scope.create('a new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            expect(scope.description).toBe('');
             expect(scope.todoLists.length).toBe(1);
             expect(scope.todoLists[0].description).toBe('a new list');
             expect(scope.todoLists[0].owner.name).toEqual(VERIFICATION_DATA.name);
@@ -86,7 +97,8 @@ describe('Controller: AppCtrl', function () {
 
         it('should not add a new todo list if no description is supplied', function() {
             expect(scope.todoLists.length).toBe(0);
-            scope.create(''); 
+            scope.description = '';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(0);
         });
     });
@@ -97,7 +109,8 @@ describe('Controller: AppCtrl', function () {
     describe('destroy', function() {
         it('should remove the todo list from the list of todos', function() {
             expect(scope.todoLists.length).toBe(0);
-            scope.create('a new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(1);
             scope.destroy(0);
             expect(scope.todoLists.length).toBe(0);
@@ -105,7 +118,8 @@ describe('Controller: AppCtrl', function () {
 
         it('should not be bothered by out-of-bound indicies', function() {
             expect(scope.todoLists.length).toBe(0);
-            scope.create('a new list'); 
+            scope.description = 'a new list';
+            scope.create();
             expect(scope.todoLists.length).toBe(1);
             scope.destroy(2);
             expect(scope.todoLists.length).toBe(1);
@@ -122,24 +136,34 @@ describe('Controller: AppCtrl', function () {
     describe('addTodo', function() {
 
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
             expect(scope.todoLists[0].todos.length).toBe(0);
             expect(scope.todoLists[1].todos.length).toBe(0);
          });
 
         it('should add a todo to the given list', function() {
-            scope.addTodo(0, 'Do this first');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            expect(scope.todoDescription).toBe('');
             expect(scope.todoLists[0].todos.length).toBe(1);
             expect(scope.todoLists[0].todos[0].description).toBe('Do this first');
             expect(scope.todoLists[0].todos[0].owner).toEqual(VERIFICATION_DATA);
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
+            expect(scope.todoDescription).toBe('');
             expect(scope.todoLists[0].todos.length).toBe(2);
 
-            scope.addTodo(1, 'Do this first');
-            expect(scope.todoLists[1].todos.length).toBe(1);
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            expect(scope.todoDescription).toBe('');
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
+            expect(scope.todoDescription).toBe('');
             expect(scope.todoLists[1].todos.length).toBe(2);
          });
 
@@ -157,15 +181,22 @@ describe('Controller: AppCtrl', function () {
     describe('destroyTodo', function() {
 
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
          });
 
@@ -194,15 +225,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('completeTodo', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
         });
 
@@ -220,15 +257,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('abandonTodo', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
         });
 
@@ -253,15 +296,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('reopenTodo', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
         });
 
@@ -286,15 +335,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('makeNote', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
         });
 
@@ -316,15 +371,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('destroyNote', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
 
             expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
@@ -352,15 +413,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('strikeNote', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
 
             expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
@@ -395,15 +462,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('unstrikeNote', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
 
             expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
@@ -440,15 +513,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('assignTodo', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
          });
 
@@ -476,15 +555,21 @@ describe('Controller: AppCtrl', function () {
      */
     describe('relieveTodo', function() {
         beforeEach(function() {
-            scope.create('a new list'); 
-            scope.create('another new list'); 
+            scope.description = 'a new list';
+            scope.create(); 
+            scope.description = 'another new list';
+            scope.create(); 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.addTodo(0, 'Do this first');
-            scope.addTodo(0, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(0);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(0);
             expect(scope.todoLists[0].todos.length).toBe(2);
-            scope.addTodo(1, 'Do this first');
-            scope.addTodo(1, 'Do this next');
+            scope.todoDescription = 'Do this first';
+            scope.addTodo(1);
+            scope.todoDescription = 'Do this next';
+            scope.addTodo(1);
             expect(scope.todoLists[1].todos.length).toBe(2);
 
             expect(scope.todoLists[0].todos[0].assignees.length).toBe(0);

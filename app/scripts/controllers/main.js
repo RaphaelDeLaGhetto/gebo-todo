@@ -12,14 +12,8 @@ angular.module('geboClientApp')
 
     /**
      * Configure OAuth2 for interaction with gebo-server
-     *
-     * The baseUrl stuff seems kind of hacky. The #/ replacement
-     * points the redirect back at the server root, as opposed
-     * to the application route (I think)
      */
     var baseUrl = window.location.origin;
-//    var baseUrl = document.URL.replace('index.html', '');
-//    baseUrl = document.URL.replace('#/', '');
 
     Token.setParams({
       clientId: 'abc123',

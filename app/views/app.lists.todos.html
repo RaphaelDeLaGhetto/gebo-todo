@@ -1,0 +1,5 @@
+<tabset class="tabs-left">
+    <tab ng-repeat="todo in list.todos" heading="{{todo.description}}">
+        <div ui-view></div>
+    </tab>
+</tabset>

@@ -32,10 +32,4 @@ angular.module('geboClientApp')
     window.opener.postMessage(params, '*');
     window.close();
 
-
-    $scope.awesomeThings = [
-      'HTML5 Boilerplate',
-      'AngularJS',
-      'Karma'
-    ];
   });

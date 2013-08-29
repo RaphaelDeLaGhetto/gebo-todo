@@ -1,13 +1,10 @@
 <div ng-controller="AppCtrl">
-    <h2>Lists of things to do</h2>
-    <form ng-submit="create(description)">
+    <h2>Lists of things <i>todo</i></h2>
+    <form ng-submit="create()">
         <input type="text" ng-model="description"
-            size=30 placeholder="Add a new todo list" />
+            size=30 placeholder="My new todo list" />
         <input class="btn-primary" type="submit" value="add" />
     </form>
-    <ul class="unstyled">
-        <li ng-repeat="list in todoLists">
-            {{list.description}}
-        </li>
-    </ul>
+
+    <div ui-view></div>
 </div>

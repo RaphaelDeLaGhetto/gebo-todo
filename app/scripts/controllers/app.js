@@ -1,22 +1,34 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .controller('AppCtrl', function ($scope, List, Token) {
+  .controller('AppCtrl', function ($scope, List, Token, $state) {
+
+    $state.transitionTo('app.lists.todos.details');
+//    $state.transitionTo('app');
+    console.log('AppCtrl: have to comment $state.transitionTo for testing');
 
     /**
      * The list of todo lists
      */
     $scope.todoLists = [];
 
+    // For testing
+//    $scope.todoLists.push(List.getNewObject('List 1', Token.data()));
+//    $scope.todoLists[0].add('Item 1', Token.data());
+//    $scope.todoLists[0].add('Item 2', Token.data());
+//    $scope.todoLists.push(List.getNewObject('List 2', Token.data()));
+//    console.log(Token.data());
+
     /**
      * Create a new todo list
      */
-    $scope.create = function(description) {
-        if (!description) {
+    $scope.create = function() {
+        if (!$scope.description) {
           return;
         }
-        var list = List.getNewObject(description, Token.data());
+        var list = List.getNewObject($scope.description, Token.data());
         $scope.todoLists.push(list);
+        $scope.description = '';
       };
 
     /**
@@ -37,11 +49,12 @@ angular.module('geboClientApp')
      * @param int
      * @param string
      */
-    $scope.addTodo = function(index, description) {
-        if (!_inRange(index)) {
+    $scope.addTodo = function(index) {
+        if (!_inRange(index) || !$scope.todoDescription) {
           return;
         }
-        $scope.todoLists[index].add(description, Token.data());
+        $scope.todoLists[index].add($scope.todoDescription, Token.data());
+        $scope.todoDescription = '';
       };
 
     /**

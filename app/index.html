@@ -54,13 +54,15 @@
 
     <!-- Add authenticated site or application content here -->
     <div class="container" ng-show="verified">
-        <div class="container" ng-view></div>
+        <div class="container" ui-view></div>
     </div>
 
     <script src="components/angular/angular.js"></script>
     <script src="components/angular-resource/angular-resource.js"></script>
     <script src="components/angular-cookies/angular-cookies.js"></script>
     <script src="components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="components/angular-ui-router/release/angular-ui-router.min.js"></script>
 
     <!-- build:js scripts/scripts.js -->
     <script src="scripts/app.js"></script>

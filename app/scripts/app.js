@@ -25,25 +25,15 @@ angular.module('geboClientApp', ['ngResource', 'ui.bootstrap', 'ui.compat'])
             }).
             state('app.lists', {
                 templateUrl: 'views/app.lists.html'
+            }).
+            state('app.lists.todos', {
+                templateUrl: 'views/app.lists.todos.html'
+            }).
+            state('app.lists.todos.details', {
+                templateUrl: 'views/app.lists.todos.details.html'
             });
 
+
+
      });
-//  .config(function ($routeProvider) {
-//    $routeProvider
-//      .when('/', {
-//        templateUrl: 'views/main.html',
-//        controller: 'MainCtrl'
-//      })
-//      .when('/token', {
-//        templateUrl: 'views/token.html',
-//        controller: 'MainCtrl'
-//      })
-//      .when('/app', {
-//        templateUrl: 'views/app.html',
-//        controller: 'AppCtrl'
-//      })
-//      .otherwise({
-//        redirectTo: '/'
-//      });
-//  });
 

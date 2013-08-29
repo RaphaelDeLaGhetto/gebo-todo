@@ -1,0 +1,10 @@
+
+<tabset class="tabs-left">
+    <tab ng-repeat="list in todoLists">
+        <tab-heading>{{list.description}}
+            <i class="icon-plus-sign"></i>
+         </tab-heading>
+        <p>Owner: {{list.owner.name}}  </p>
+        <div ui-view></div>
+    </tab>
+</tabset>
