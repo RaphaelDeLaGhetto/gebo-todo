@@ -10,6 +10,8 @@ files = [
   'app/components/angular/angular.js',
   'app/components/angular-mocks/angular-mocks.js',
   'app/components/angular-resource/angular-resource.js',
+  'app/components/angular-bootstrap/ui-bootstrap-tpls.min.js',
+  'app/components/angular-ui-router/release/angular-ui-router.min.js',
   'app/scripts/*.js',
   'app/scripts/**/*.js',
   'test/mock/**/*.js',
