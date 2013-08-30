@@ -15,6 +15,18 @@ describe('Service: List', function () {
                 scope: ['*'],
             };
 
+    var PUT_SUCCESS = { success: true },
+        DATA_TO_SAVE = { cat_breath: 'smells like catfood' };
+
+    var CLIENT_ID = 'abc123',
+        REDIRECT_URI = 'http://myhost.com',
+        AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
+        VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
+        SAVE_ENDPOINT = 'http://theirhost.com/api/save',
+        LOCALSTORAGE_NAME = 'accessToken',
+        SCOPES = ['*'],
+        ACCESS_TOKEN = '1234';
+ 
 
     var DESCRIPTION = 'A new thing todo',
         TODO = {
@@ -28,16 +40,62 @@ describe('Service: List', function () {
 
     // instantiate service
     var List,
-        listInstance;
+        Token,
+        listInstance,
+        $httpBackend;
 
-    beforeEach(inject(function (_List_) {
+    beforeEach(inject(function (_List_, $injector) {
+//        Token = $injector.get('Token');
+//        Token.setParams({
+//          clientId: CLIENT_ID,
+//          redirectUri: REDIRECT_URI,
+//          authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+//          verificationEndpoint: VERIFICATION_ENDPOINT,
+//          saveEndpoint: SAVE_ENDPOINT,
+//          localStorageName: 'accessToken',
+//          scopes: SCOPES
+//        });
+
         List = _List_;
         listInstance = List.getNewObject(DESCRIPTION, OWNER);
+
+//        $httpBackend = $injector.get('$httpBackend');
+//        $httpBackend.whenPUT(SAVE_ENDPOINT, { data: DATA_TO_SAVE }, { access_token: ACCESS_TOKEN }).respond(PUT_SUCCESS);
+//
+//        spyOn(Token, 'get').andCallFake(function() {
+//            return ACCESS_TOKEN;
+//        });
+//
+//        spyOn(Token, 'data').andCallFake(function() {
+//            return OWNER;
+//        });
+
+
     }));
+
+//    afterEach(function() {
+//        $httpBackend.verifyNoOutstandingExpectation();
+//        $httpBackend.verifyNoOutstandingRequest();
+//    });
 
     it('should do something', function () {
         expect(!!List).toBe(true);
+//        expect(!!Token).toBe(true);
     });
+
+    /**
+     * save
+     */
+//    describe('save', function() {
+//        it('should try to PUT data', function() {
+//            $httpBackend.expectPUT(SAVE_ENDPOINT);
+//            List.save();
+//            expect(Token.get).toHaveBeenCalled();
+//            expect(Token.data).toHaveBeenCalled();
+//            $httpBackend.flush();
+//        });
+// 
+//    });
 
     /**
      * getNewObject

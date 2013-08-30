@@ -23,6 +23,8 @@ angular.module('geboClientApp')
       authorizationEndpoint: 'http://localhost:3000/dialog/authorize',
 //      verificationEndpoint: 'http://192.168.1.25:3000\\:3000/api/userinfo',
       verificationEndpoint: 'http://localhost:3000\\:3000/api/userinfo',
+//      saveEndpoint: 'http://192.168.1.25:3000\\:3000/api/save',
+      saveEndpoint: 'http://localhost:3000\\:3000/api/save',
       localStorageName: 'gebo-token',
     });
 

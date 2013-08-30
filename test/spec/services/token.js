@@ -6,10 +6,14 @@ describe('Service: Token', function () {
         REDIRECT_URI = 'http://myhost.com',
         AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
+        SAVE_ENDPOINT = 'http://theirhost.com/api/save',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
  
+    var PUT_SUCCESS = { success: true },
+        DATA_TO_SAVE = { cat_breath: 'smells like catfood' },
+        COLLECTION = 'hardtruths';
 
     var VERIFICATION_DATA = {
                 id: '1',
@@ -32,13 +36,14 @@ describe('Service: Token', function () {
             $httpBackend.when('GET', VERIFICATION_ENDPOINT + 
                     '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
 
-//            $httpBackend.when('GET', AUTHORIZATION_ENDPOINT + 
-//                    '?access_token=' + ACCESS_TOKEN).respond({
-//                id: '1',
-//                name: 'dan',
-//                email: 'dan@email.com',
-//                scope: ['*'],
-//            });
+            $httpBackend.whenPUT(SAVE_ENDPOINT, {
+                access_token: ACCESS_TOKEN,
+                data: DATA_TO_SAVE,
+                collection: COLLECTION
+            }).respond(PUT_SUCCESS);
+
+
+            $httpBackend.when('GET', 'views/main.html').respond();
         });
         
         /**
@@ -74,11 +79,54 @@ describe('Service: Token', function () {
     });
   
     /**
+     * saveToProfile
+     */
+    describe('saveToProfile', function() {
+        beforeEach(function() {
+            token.setParams({
+              clientId: CLIENT_ID,
+              redirectUri: REDIRECT_URI,
+              authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              verificationEndpoint: VERIFICATION_ENDPOINT,
+              saveEndpoint: SAVE_ENDPOINT,
+              localStorageName: 'accessToken',
+              scopes: SCOPES
+            });
+            
+            token.set(ACCESS_TOKEN);
+        });
+
+        it('should try to PUT something in the database', function() {
+//            $httpBackend.expect('GET', 'views/main.html');
+            $httpBackend.expectPUT(SAVE_ENDPOINT, {
+                access_token: ACCESS_TOKEN,
+                data: DATA_TO_SAVE,
+                collection: COLLECTION
+            });
+            token.saveToProfile(DATA_TO_SAVE, COLLECTION);
+            expect(localStorage.getItem).toHaveBeenCalled();
+            $httpBackend.flush();
+        });
+
+        it('should not PUT empty data in the database', function() {
+            expect(token.saveToProfile('', COLLECTION)).toBeUndefined();
+            expect(token.saveToProfile({}, COLLECTION)).toBeUndefined();
+            expect(token.saveToProfile(null, COLLECTION)).toBeUndefined();
+        });
+
+        it('should not PUT data in the database without a collection', function() {
+            expect(token.saveToProfile(DATA_TO_SAVE, '')).toBeUndefined();
+            expect(token.saveToProfile(DATA_TO_SAVE, null)).toBeUndefined();
+        });
+     });
+
+
+    /**
      * getParams
      */
     describe('getParams', function() {
   
-        it('should thrown an exception if not initialized', function() {
+        it('should throw an exception if not initialized', function() {
             expect(function() { token.getParams(); }).toThrow(
                     new Error('Token is insufficiently configured. ' +
                             'Please configure the following options: ' +
@@ -92,6 +140,7 @@ describe('Service: Token', function () {
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
               verificationEndpoint: VERIFICATION_ENDPOINT,
+              saveEndpoint: SAVE_ENDPOINT,
               localStorageName: 'accessToken',
               scopes: SCOPES
             });
@@ -115,6 +164,7 @@ describe('Service: Token', function () {
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
               verificationEndpoint: VERIFICATION_ENDPOINT,
+              saveEndpoint: SAVE_ENDPOINT,
               localStorageName: 'accessToken',
               scopes: SCOPES
             });
@@ -140,6 +190,7 @@ describe('Service: Token', function () {
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
               verificationEndpoint: VERIFICATION_ENDPOINT,
+              saveEndpoint: SAVE_ENDPOINT,
               localStorageName: 'accessToken',
               scopes: SCOPES
             });
@@ -199,6 +250,7 @@ describe('Service: Token', function () {
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
               verificationEndpoint: VERIFICATION_ENDPOINT,
+              saveEndpoint: SAVE_ENDPOINT,
               localStorageName: 'accessToken',
               scopes: SCOPES
             });
@@ -267,6 +319,27 @@ describe('Service: Token', function () {
             expect(localStorage.removeItem).toHaveBeenCalled();
             expect(token.get()).toBe(undefined);
             expect(token.data()).toEqual({});
+        });
+    });
+
+    /**
+     * saveEndpoint
+     */
+    describe('saveEndpoint', function() {
+        it('should return the saveEndpoint', function() {
+           expect(token.saveEndpoint()).toBeNull();
+
+           token.setParams({
+              clientId: CLIENT_ID,
+              redirectUri: REDIRECT_URI,
+              authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              verificationEndpoint: VERIFICATION_ENDPOINT,
+              saveEndpoint: SAVE_ENDPOINT,
+              localStorageName: 'accessToken',
+              scopes: SCOPES
+            });
+
+            expect(token.saveEndpoint()).toBe(SAVE_ENDPOINT);
         });
     });
 });

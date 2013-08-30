@@ -41,7 +41,9 @@ describe('Controller: MainCtrl', function () {
                 $scope: scope,
                 Token: token
             });
-//            $httpBackend = $injector.get('$httpBackend');
+
+            $httpBackend = $injector.get('$httpBackend');
+            $httpBackend.when('GET', 'views/main.html').respond();
         });
 
 //        $httpBackend.whenGET(VERIFICATION_ENDPOINT +

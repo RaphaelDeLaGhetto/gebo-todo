@@ -1,10 +1,36 @@
-
+<!--
+<div class="finder">
+    <table>
+        <tbody>
+            <tr>
+                <td ng-repeat="list in todoLists">
+                    <a href ng-click="create($index)"
+                            class="btn btn-mini btn-block">
+                        <i class="icon-plus-sign"></i>
+                        Add todo list
+                    </a>
+                    <ul>
+                        <li>{{list.description}}</li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+-->
 <tabset class="tabs-left">
     <tab ng-repeat="list in todoLists">
-        <tab-heading>{{list.description}}
-            <i class="icon-plus-sign"></i>
-         </tab-heading>
+        <tab-heading>
+            <a ui-sref="app.lists.todos">{{list.description}}</a>
+        </tab-heading>
         <p>Owner: {{list.owner.name}}  </p>
+        <form ng-submit="addTodo($index)">
+            <input type="text" ng-model="$parent.todoDescription"
+                size=30 placeholder="My new todo" />
+
+            <input class="btn-primary" type="submit" value="add" />
+        </form>
+
         <div ui-view></div>
     </tab>
 </tabset>

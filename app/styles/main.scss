@@ -15,3 +15,41 @@ body {
     text-decoration: line-through;
     color: grey;
 }
+
+
+.finder { overflow-x: auto }
+.finder table { border: solid 1px #999 }
+.finder table td {
+    vertical-align: top;
+    border-left: solid 1px #999;
+    margin: 0;
+    padding: 0;
+}
+
+.finder table td ul {
+    list-style-type: none;
+    margin: .5rem 0 0 0;
+    padding: .1rem;
+    max-height: 50vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.finder table td ul li {
+    padding: .3rem .15rem;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    width: 18rem;
+}
+
+.finder table td ul li:hover { background-color: #eee }
+.finder table td ul li.active,
+.finder table td ul li.active:hover {
+    background-color: #eee;
+    font-weight: bold;
+}
+

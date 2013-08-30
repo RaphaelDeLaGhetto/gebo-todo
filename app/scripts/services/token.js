@@ -28,6 +28,7 @@ angular.module('geboClientApp')
       redirectUri: REQUIRED_AND_MISSING,
       authorizationEndpoint: REQUIRED_AND_MISSING,
       verificationEndpoint: REQUIRED_AND_MISSING,
+      saveEndpoint: null,
       localStorageName: 'accessToken',
       scopes: []
     };
@@ -259,6 +260,34 @@ angular.module('geboClientApp')
       };
 
     /**
+     * Save data to the user's profile
+     */
+    var _saveToProfile = function(data, collection) {
+
+        var Data = $resource(_config.saveEndpoint,
+                        {  },
+                        { store: { method: 'PUT' }});
+
+        if (!data || Object.keys(data).length === 0 || !collection) {
+          return;
+        }
+
+        var dataResource = new Data();
+        dataResource.access_token = _get();
+        dataResource.data = data;
+        dataResource.collection = collection;
+
+        dataResource.$store(function(val, res) {
+            console.log('Success storing');       
+            console.log(val);
+        },
+        function(res) {
+            console.log('Error storing');       
+            console.log(res);       
+        });
+      };
+
+    /**
      * API
      */
     return {
@@ -272,6 +301,10 @@ angular.module('geboClientApp')
       objectToQueryString: _objectToQueryString,
       verify: _verify,
       verifyAsync: _verifyAsync,
+      saveEndpoint: function() {
+              return _config.saveEndpoint;
+            },
+      saveToProfile: _saveToProfile,
       set: _set,
       setParams: _setParams,
     };
