@@ -1,6 +1,8 @@
 {
   "name": "gebo-client",
   "version": "0.0.0",
+  "author": "Daniel Bidulock",
+  "repository": "https://github.com/RaphaelDeLaGhetto/gebo-client",
   "dependencies": {},
   "devDependencies": {
     "grunt": "~0.4.1",
