@@ -29,6 +29,7 @@ angular.module('geboClientApp')
       authorizationEndpoint: REQUIRED_AND_MISSING,
       verificationEndpoint: REQUIRED_AND_MISSING,
       saveEndpoint: null,
+      appDataEndpoint: null,
       localStorageName: 'accessToken',
       scopes: []
     };
@@ -238,7 +239,6 @@ angular.module('geboClientApp')
                         { access_token: accessToken },
                         { verify: { method: 'GET' }});
 
-
         Token.verify(
             function(data) {
                 _data = data;
@@ -261,21 +261,22 @@ angular.module('geboClientApp')
 
     /**
      * Save data to the user's profile
+     *
+     * @param string
      */
-    var _saveToProfile = function(data, collection) {
+    var _saveToProfile = function(data) {
 
         var Data = $resource(_config.saveEndpoint,
                         {  },
                         { store: { method: 'PUT' }});
 
-        if (!data || Object.keys(data).length === 0 || !collection) {
+        if (!data || Object.keys(data).length === 0) {
           return;
         }
 
         var dataResource = new Data();
         dataResource.access_token = _get();
         dataResource.data = data;
-        dataResource.collection = collection;
 
         dataResource.$store(function(val, res) {
             console.log('Success storing');       
@@ -288,9 +289,37 @@ angular.module('geboClientApp')
       };
 
     /**
+     * Retrieve app data from the user's profile
+     *
+     * @param string
+     */
+    var _retrieveFromProfile = function(docName) {
+        var deferred = $q.defer();
+
+        var Data = $resource(_config.appDataEndpoint,
+                        { access_token: _get(),
+                          doc: docName || '' },
+                        { retrieve: { method: 'GET' }});
+
+        var dataResource = new Data();
+
+        dataResource.$retrieve(function(val) {
+            deferred.resolve(val);
+        },
+        function(err) {
+            deferred.reject(err);
+        });
+
+        return deferred.promise;
+      };
+
+    /**
      * API
      */
     return {
+      appDataEndpoint: function() {
+              return _config.appDataEndpoint;
+            },
       clear: _clear,
       data: function() {
               return _data;
@@ -299,6 +328,7 @@ angular.module('geboClientApp')
       getTokenByPopup: _getTokenByPopup,
       getParams: _getParams,
       objectToQueryString: _objectToQueryString,
+      retrieveFromProfile: _retrieveFromProfile,
       verify: _verify,
       verifyAsync: _verifyAsync,
       saveEndpoint: function() {

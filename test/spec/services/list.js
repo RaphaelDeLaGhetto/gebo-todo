@@ -124,10 +124,10 @@ describe('Service: List', function () {
         describe('add', function() {
             it('should add a todo', function() {
                 listInstance.add(DESCRIPTION, OWNER);
+                expect(listInstance.todos[1].date).toBeCloseTo(new Date());
                 expect(listInstance.todos[1].description).toBe(DESCRIPTION);
                 expect(listInstance.todos[1].owner).toBe(OWNER);
                 expect(listInstance.todos[1].assignees).toEqual([]);
-                expect(listInstance.todos[1].date).toBeCloseTo(new Date());
                 expect(listInstance.todos[1].deadline).toBe(null);
                 expect(listInstance.todos[1].completed).toBe(null);
                 expect(listInstance.todos[1].abandoned).toBe(null);

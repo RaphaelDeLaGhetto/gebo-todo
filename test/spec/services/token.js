@@ -6,14 +6,15 @@ describe('Service: Token', function () {
         REDIRECT_URI = 'http://myhost.com',
         AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
+        APP_DATA_ENDPOINT = 'http://theirhost.com/api/retrieve',
         SAVE_ENDPOINT = 'http://theirhost.com/api/save',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
  
     var PUT_SUCCESS = { success: true },
-        DATA_TO_SAVE = { cat_breath: 'smells like catfood' },
-        COLLECTION = 'hardtruths';
+        DATA_TO_SAVE = { cat_breath: 'smells like catfood' };//,
+//        COLLECTION = 'hardtruths';
 
     var VERIFICATION_DATA = {
                 id: '1',
@@ -38,9 +39,8 @@ describe('Service: Token', function () {
 
             $httpBackend.whenPUT(SAVE_ENDPOINT, {
                 access_token: ACCESS_TOKEN,
-                data: DATA_TO_SAVE,
-                collection: COLLECTION
-            }).respond(PUT_SUCCESS);
+                data: DATA_TO_SAVE
+              }).respond(PUT_SUCCESS);
 
 
             $httpBackend.when('GET', 'views/main.html').respond();
@@ -97,29 +97,82 @@ describe('Service: Token', function () {
         });
 
         it('should try to PUT something in the database', function() {
-//            $httpBackend.expect('GET', 'views/main.html');
             $httpBackend.expectPUT(SAVE_ENDPOINT, {
                 access_token: ACCESS_TOKEN,
-                data: DATA_TO_SAVE,
-                collection: COLLECTION
+                data: DATA_TO_SAVE
             });
-            token.saveToProfile(DATA_TO_SAVE, COLLECTION);
+            token.saveToProfile(DATA_TO_SAVE);
             expect(localStorage.getItem).toHaveBeenCalled();
             $httpBackend.flush();
         });
 
         it('should not PUT empty data in the database', function() {
-            expect(token.saveToProfile('', COLLECTION)).toBeUndefined();
-            expect(token.saveToProfile({}, COLLECTION)).toBeUndefined();
-            expect(token.saveToProfile(null, COLLECTION)).toBeUndefined();
+            expect(token.saveToProfile('')).toBeUndefined();
+            expect(token.saveToProfile({})).toBeUndefined();
+            expect(token.saveToProfile(null)).toBeUndefined();
         });
 
-        it('should not PUT data in the database without a collection', function() {
-            expect(token.saveToProfile(DATA_TO_SAVE, '')).toBeUndefined();
-            expect(token.saveToProfile(DATA_TO_SAVE, null)).toBeUndefined();
-        });
+//        it('should not PUT data in the database without a collection', function() {
+//            expect(token.saveToProfile(DATA_TO_SAVE, '')).toBeUndefined();
+//            expect(token.saveToProfile(DATA_TO_SAVE, null)).toBeUndefined();
+//        });
      });
 
+    /**
+     * retrieveFromProfile
+     */
+    describe('retrieveFromProfile', function() {
+        beforeEach(function() {
+            token.setParams({
+              clientId: CLIENT_ID,
+              redirectUri: REDIRECT_URI,
+              authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              verificationEndpoint: VERIFICATION_ENDPOINT,
+              saveEndpoint: SAVE_ENDPOINT,
+              appDataEndpoint: APP_DATA_ENDPOINT,
+              localStorageName: 'accessToken',
+              scopes: SCOPES
+            });
+            token.set(ACCESS_TOKEN);
+
+            $httpBackend.whenGET(APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=').respond(VERIFICATION_DATA);
+
+            $httpBackend.whenGET(APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=some_doc').
+                    respond(VERIFICATION_DATA);
+         });
+
+        it('should GET all relevant docs from the database', function() {
+            $httpBackend.expectGET(APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=');
+            
+            token.retrieveFromProfile().
+                then(function(data) {
+                    expect(data.id).toBe('1');
+                    expect(data.name).toBe('dan');
+                    expect(data.email).toBe('dan@email.com');
+                    expect(data.scope).toEqual(['*']);
+                });
+            expect(localStorage.getItem).toHaveBeenCalled();
+            $httpBackend.flush();
+        });
+
+        it('should GET the requested doc from the database', function() {
+            $httpBackend.expectGET(APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=some_doc');
+            
+            token.retrieveFromProfile('some_doc').
+                then(function(data) {
+                    expect(data.id).toBe('1');
+                    expect(data.name).toBe('dan');
+                    expect(data.email).toBe('dan@email.com');
+                    expect(data.scope).toEqual(['*']);
+                });
+            expect(localStorage.getItem).toHaveBeenCalled();
+            $httpBackend.flush();
+        });
+    });     
 
     /**
      * getParams
@@ -342,4 +395,27 @@ describe('Service: Token', function () {
             expect(token.saveEndpoint()).toBe(SAVE_ENDPOINT);
         });
     });
+
+    /**
+     * appDataEndpoint
+     */
+    describe('appDataEndpoint', function() {
+        it('should return the appDataEndpoint', function() {
+           expect(token.saveEndpoint()).toBeNull();
+
+           token.setParams({
+              clientId: CLIENT_ID,
+              redirectUri: REDIRECT_URI,
+              authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+              verificationEndpoint: VERIFICATION_ENDPOINT,
+              saveEndpoint: SAVE_ENDPOINT,
+              appDataEndpoint: APP_DATA_ENDPOINT,
+              localStorageName: 'accessToken',
+              scopes: SCOPES
+            });
+
+            expect(token.appDataEndpoint()).toBe(APP_DATA_ENDPOINT);
+        });
+    });
+
 });

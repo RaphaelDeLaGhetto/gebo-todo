@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .controller('AppCtrl', function ($scope, List, Token, $state) {
+  .controller('AppCtrl', function ($scope, List, Token, $state, $q) {
 
 //    $state.transitionTo('app');
 //    $state.transitionTo('app.lists');
@@ -14,6 +14,17 @@ angular.module('geboClientApp')
      * The list of todo lists
      */
     $scope.todoLists = [];
+
+    $scope.init = function() {
+        console.log('init');
+        Token.retrieveFromProfile().
+          then(function(data) {
+                $scope.todoLists = data;
+                console.log('DOOOOOOOOOOOOOOOOOOOOOOOOOOOONE');
+                console.log(data);
+            });
+      };
+
 
     // For testing
 //    $scope.todoLists.push(List.getNewObject('List 1', Token.data()));
@@ -31,7 +42,7 @@ angular.module('geboClientApp')
         }
         var list = List.getNewObject($scope.description, Token.data());
         $scope.todoLists.push(list);
-        Token.saveToProfile(list, 'todoLists');
+        Token.saveToProfile(list);
         $scope.description = '';
       };
 

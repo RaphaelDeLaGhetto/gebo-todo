@@ -6,6 +6,8 @@ describe('Controller: AppCtrl', function () {
         REDIRECT_URI = 'http://myhost.com',
         AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
+        APP_DATA_ENDPOINT = 'http://theirhost.com/api/retrieve',
+        SAVE_ENDPOINT = 'http://theirhost.com/api/save',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
@@ -16,7 +18,9 @@ describe('Controller: AppCtrl', function () {
                 name: 'dan',
                 email: 'dan@email.com',
                 scope: ['*'],
-            };
+            },
+        PUT_SUCCESS = { success: true },
+        DATA_TO_SAVE; // Defined in beforeEach
 
     // load the controller's module
     beforeEach(module('geboClientApp'));
@@ -26,15 +30,36 @@ describe('Controller: AppCtrl', function () {
         Token,
         scope,
         state,
-        $httpBackend;
+        $httpBackend,
+        rootScope,
+        $q;
 
     // Initialize the controller and a mock scope
     beforeEach(inject(function ($injector, $controller, $rootScope) {
+        rootScope = $rootScope;
         scope = $rootScope.$new();
         List = $injector.get('List');
         Token = $injector.get('Token');
         state = $injector.get('$state');
+        $q = $injector.get('$q');
 
+        /**
+         * Set up Token before injecting an AppCtrl
+         */
+        Token.setParams({
+          clientId: CLIENT_ID,
+          redirectUri: REDIRECT_URI,
+          authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+          verificationEndpoint: VERIFICATION_ENDPOINT,
+          appDataEndpoint: APP_DATA_ENDPOINT,
+          saveEndpoint: SAVE_ENDPOINT,
+          localStorageName: 'accessToken',
+          scopes: SCOPES
+        });
+
+        /**
+         * Inject an AppCtrl
+         */
         AppCtrl = $controller('AppCtrl', {
             $scope: scope,
             List: List,
@@ -42,22 +67,48 @@ describe('Controller: AppCtrl', function () {
             $state: state,
         });
 
+        /**
+         * $http
+         */
         $httpBackend = $injector.get('$httpBackend');
 
         $httpBackend.when('GET', VERIFICATION_ENDPOINT +
                 '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
 
-        Token.setParams({
-          clientId: CLIENT_ID,
-          redirectUri: REDIRECT_URI,
-          authorizationEndpoint: AUTHORIZATION_ENDPOINT,
-          verificationEndpoint: VERIFICATION_ENDPOINT,
-          localStorageName: 'accessToken',
-          scopes: SCOPES
+        /**
+         * PUTS with different DATA_TO_SAVE (cloned and modified)
+         */
+        DATA_TO_SAVE = List.getNewObject('a new list', VERIFICATION_DATA);
+        DATA_TO_SAVE.date = 'Today';
+
+        $httpBackend.whenPUT(SAVE_ENDPOINT, {
+            access_token: ACCESS_TOKEN,
+            data: DATA_TO_SAVE
+        }).respond(PUT_SUCCESS);
+
+        DATA_TO_SAVE = List.getNewObject('another new list', VERIFICATION_DATA);
+        DATA_TO_SAVE.date = 'Today';
+        $httpBackend.whenPUT(SAVE_ENDPOINT, {
+            access_token: ACCESS_TOKEN,
+            data: DATA_TO_SAVE
+        }).respond(PUT_SUCCESS);
+
+
+        /**
+         * Spies
+         */
+        spyOn(localStorage, 'getItem').andCallFake(function(key) {
+            return ACCESS_TOKEN;
         });
 
         spyOn(Token, 'data').andCallFake(function(key) {
             return VERIFICATION_DATA;
+        });
+
+        spyOn(List, 'getNewObject').andCallFake(function(description, user) {
+            var data = angular.copy(DATA_TO_SAVE);
+            data.description = description;
+            return data;
         });
 
         // ui-router needs this for some reason. Not
@@ -65,6 +116,11 @@ describe('Controller: AppCtrl', function () {
         $httpBackend.when('GET', 'views/main.html').respond({});
         $httpBackend.when('GET', 'views/app.html').respond({});
     }));
+
+    afterEach(function() {
+        $httpBackend.verifyNoOutstandingExpectation();
+        $httpBackend.verifyNoOutstandingRequest();
+    });
 
     it('should attach a todo list object to the scope', function () {
         expect(scope.todoLists.length).toBe(0);
@@ -75,17 +131,24 @@ describe('Controller: AppCtrl', function () {
      */
     describe('create', function() {
         beforeEach(function() {
-           // $httpBackend.expectGET('views/main.html');
-            $httpBackend.expectGET(VERIFICATION_ENDPOINT + 
-                    '?access_token=' + ACCESS_TOKEN); 
-            Token.verifyAsync(ACCESS_TOKEN);
-            $httpBackend.flush();
+//            $httpBackend.expectGET('views/main.html');
+//            $httpBackend.expectGET(VERIFICATION_ENDPOINT + 
+//                    '?access_token=' + ACCESS_TOKEN); 
+//            Token.verifyAsync(ACCESS_TOKEN);
+//            $httpBackend.flush();
         });
 
         it('should add a new todo list to the list of todos', function() {
+            var data = angular.copy(DATA_TO_SAVE);
+            data.description = 'a new list';
+            $httpBackend.expectPUT(SAVE_ENDPOINT, {
+                access_token: ACCESS_TOKEN,
+                data: data
+            });
             expect(scope.todoLists.length).toBe(0);
             scope.description = 'a new list';
             scope.create(); 
+
             expect(scope.description).toBe('');
             expect(scope.todoLists.length).toBe(1);
             expect(scope.todoLists[0].description).toBe('a new list');
@@ -93,6 +156,10 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].owner.email).toEqual(VERIFICATION_DATA.email);
             expect(scope.todoLists[0].owner.id).toEqual(VERIFICATION_DATA.id);
             expect(scope.todoLists[0].owner.scopes).toEqual(VERIFICATION_DATA.scopes);
+
+            expect(localStorage.getItem).toHaveBeenCalled();
+            expect(List.getNewObject).toHaveBeenCalled();
+            $httpBackend.flush();
         });
 
         it('should not add a new todo list if no description is supplied', function() {
@@ -114,6 +181,7 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists.length).toBe(1);
             scope.destroy(0);
             expect(scope.todoLists.length).toBe(0);
+            $httpBackend.flush();
         });
 
         it('should not be bothered by out-of-bound indicies', function() {
@@ -127,6 +195,7 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists.length).toBe(1);
             scope.destroy(0);
             expect(scope.todoLists.length).toBe(0);
+            $httpBackend.flush();
         });
     });
 
@@ -137,14 +206,46 @@ describe('Controller: AppCtrl', function () {
 
         beforeEach(function() {
 
+            // NOTE: it looks like these $httpBackend
+            // expectations need to be declared in the
+            // order they're expect. Not sure, but
+            // reordering got the tests to pass
+
+            // For the first new list
+            var data = angular.copy(DATA_TO_SAVE);
+            data.description = 'a new list';
+            $httpBackend.expectPUT(SAVE_ENDPOINT, {
+                access_token: ACCESS_TOKEN,
+                data: data
+            });
+
+            // For the second new list
+            data = angular.copy(DATA_TO_SAVE);
+            data.description = 'another new list';
+            $httpBackend.expectPUT(SAVE_ENDPOINT, {
+                access_token: ACCESS_TOKEN,
+                data: data
+            });
+
             scope.description = 'a new list';
             scope.create(); 
             scope.description = 'another new list';
             scope.create(); 
+
             expect(scope.todoLists.length).toBe(2);
+
             expect(scope.todoLists[0].todos.length).toBe(0);
+            expect(scope.todoLists[0].description).toBe('a new list');
+
             expect(scope.todoLists[1].todos.length).toBe(0);
-         });
+            expect(scope.todoLists[1].description).toBe('another new list');
+
+            $httpBackend.flush();
+       });
+
+       beforeEach(function() {
+            // For the second new list
+       });
 
         it('should add a todo to the given list', function() {
             scope.todoDescription = 'Do this first';
@@ -210,6 +311,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[1].todos.length).toBe(1);
             scope.destroyTodo(1, 0);
             expect(scope.todoLists[1].todos.length).toBe(0);
+
+            $httpBackend.flush();
         });
 
         it('should not be bothered by out-of-range indicies', function() {
@@ -217,6 +320,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos[3]).toBe(undefined);
             scope.destroyTodo(1, -1);
             expect(scope.todoLists[1].todos[-1]).toBe(undefined);
+
+            $httpBackend.flush();
          });
      });
 
@@ -249,6 +354,8 @@ describe('Controller: AppCtrl', function () {
             scope.completeTodo(0, 0);
             expect(scope.todoLists[0].todos[0].completed).toBeCloseTo(new Date());
             expect(scope.todoLists[0].todos[0].abandoned).toBe(null);
+
+            $httpBackend.flush();
         });
     });
 
@@ -279,6 +386,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[1].todos[1].abandoned).toBe(null);
             scope.abandonTodo(1, 1);
             expect(scope.todoLists[1].todos[1].abandoned).toBeCloseTo(new Date());
+
+            $httpBackend.flush();
         });
 
         it('should not be bothered by out-of-bound indicies', function() {
@@ -288,6 +397,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[1].todos[-1]).toBe(undefined);
             scope.abandonTodo(2, 2);
             expect(scope.todoLists[2]).toBe(undefined);
+
+            $httpBackend.flush();
           });
      });
 
@@ -319,6 +430,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos[1].completed).toBeCloseTo(new Date());
             scope.reopenTodo(0, 1);
             expect(scope.todoLists[0].todos[1].completed).toBe(null);
+
+            $httpBackend.flush();
         });
 
         it('should nullify a todo\'s abandoned status', function() {
@@ -326,6 +439,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[0].todos[1].abandoned).toBeCloseTo(new Date());
             scope.reopenTodo(0, 1);
             expect(scope.todoLists[0].todos[1].abandoned).toBe(null);
+
+            $httpBackend.flush();
         });
      });
 
@@ -363,6 +478,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[1].todos[1].notes[0].date).toBeCloseTo(new Date());
             expect(scope.todoLists[1].todos[1].notes[0].owner).toEqual(VERIFICATION_DATA);
             expect(scope.todoLists[1].todos[1].notes[0].relevant).toBe(true);
+
+            $httpBackend.flush();
         });
     });
 
@@ -396,6 +513,8 @@ describe('Controller: AppCtrl', function () {
         it('should remove a note from a todo', function() {
             scope.destroyNote(1, 1);
             expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
+
+            $httpBackend.flush();
         });
 
         it('should ignore out-of-bound indices', function() {
@@ -405,6 +524,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[1].todos[-1]).toBe(undefined);
             scope.destroyNote(2, 0);
             expect(scope.todoLists[2]).toBe(undefined);
+
+            $httpBackend.flush();
          });
      });
 
@@ -439,6 +560,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[1].todos[1].notes[0].relevant).toBe(true);
             scope.strikeNote(1, 1, 0);
             expect(scope.todoLists[1].todos[1].notes[0].relevant).toBe(false);
+
+            $httpBackend.flush();
         });
 
         it('should ignore out-of-bound indices', function() {
@@ -454,6 +577,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[2]).toBe(undefined);
             scope.strikeNote(-1, 0, 0);
             expect(scope.todoLists[-1]).toBe(undefined);
+
+            $httpBackend.flush();
          });
     });
 
@@ -490,6 +615,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[1].todos[1].notes[0].relevant).toBe(false);
             scope.unstrikeNote(1, 1, 0);
             expect(scope.todoLists[1].todos[1].notes[0].relevant).toBe(true);
+
+            $httpBackend.flush();
         });
 
         it('should ignore out-of-bound indices', function() {
@@ -505,6 +632,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[2]).toBe(undefined);
             scope.unstrikeNote(-1, 0, 0);
             expect(scope.todoLists[-1]).toBe(undefined);
+
+            $httpBackend.flush();
         });
      });
 
@@ -536,6 +665,8 @@ describe('Controller: AppCtrl', function () {
             scope.assignTodo(0, 0, VERIFICATION_DATA);
             expect(scope.todoLists[0].todos[0].assignees.length).toBe(1);
             expect(scope.todoLists[0].todos[0].assignees[0].name).toBe('dan');
+
+            $httpBackend.flush();
         });
 
         it('should ignore out-of-bound indices', function() {
@@ -547,6 +678,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[2]).toBe(undefined);
             scope.assignTodo(-1, 0, VERIFICATION_DATA);
             expect(scope.todoLists[-1]).toBe(undefined);
+
+            $httpBackend.flush();
           });
      });
 
@@ -581,6 +714,8 @@ describe('Controller: AppCtrl', function () {
             scope.relieveTodo(0, 0, 0);
             expect(scope.todoLists[0].todos[0].assignees.length).toBe(0);
             expect(scope.todoLists[0].todos[0].assignees[0]).toBe(undefined);
+
+            $httpBackend.flush();
         });
 
         it('should ignore out-of-bound indices', function() {
@@ -592,9 +727,50 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists[2]).toBe(undefined);
             scope.relieveTodo(-1, 0, VERIFICATION_DATA);
             expect(scope.todoLists[-1]).toBe(undefined);
+
+            $httpBackend.flush();
         });
      });
 
+    /**
+     * init
+     */
+    describe('init', function() {
+        beforeEach(function() {
+            $httpBackend.whenGET(APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=').
+                    respond([VERIFICATION_DATA]);
 
+//            spyOn(Token, 'retrieveFromProfile').andCallFake(function() {
+//                var deferred = $q.defer();
+//                deferred.resolve([VERIFICATION_DATA]);
+//                return deferred.promise;
+//            });
+
+         });
+
+        it('should load the app data', function() {
+            $httpBackend.expectGET(APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=').
+                    respond([VERIFICATION_DATA]);
+
+            expect(scope.todoLists.length).toBe(0);
+
+            scope.init();
+            
+            $httpBackend.flush();
+//            scope.$digest();
+            rootScope.$digest();
+//            expect(Token.retrieveFromProfile).toHaveBeenCalled();
+
+            expect(scope.todoLists.length).toBe(1);
+            expect(scope.todoLists.id).toBe('1');
+            expect(scope.todoLists[0].name).toBe('dan');
+            expect(scope.todoLists[0].email).toBe('dan@email.com');
+            expect(scope.todoLists[0].scope).toEqual(['*']);
+
+        });
+
+    });
 });
 
