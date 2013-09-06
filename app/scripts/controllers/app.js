@@ -8,7 +8,7 @@ angular.module('geboClientApp')
 //    $state.transitionTo('app.lists.todos');
 //    $state.transitionTo('app.lists.todos.details');
 //    $state.transitionTo('app');
-    console.log('AppCtrl: have to comment $state.transitionTo for testing');
+//    console.log('AppCtrl: have to comment $state.transitionTo for testing');
 
     /**
      * The list of todo lists
@@ -16,12 +16,9 @@ angular.module('geboClientApp')
     $scope.todoLists = [];
 
     $scope.init = function() {
-        console.log('init');
-        Token.retrieveFromProfile().
+        Token.ls().
           then(function(data) {
                 $scope.todoLists = data;
-                console.log('DOOOOOOOOOOOOOOOOOOOOOOOOOOOONE');
-                console.log(data);
             });
       };
 
@@ -41,9 +38,11 @@ angular.module('geboClientApp')
           return;
         }
         var list = List.getNewObject($scope.description, Token.data());
-        $scope.todoLists.push(list);
-        Token.saveToProfile(list);
-        $scope.description = '';
+
+        Token.save(list).then(function(savedList) {
+            $scope.todoLists.push(savedList);
+            $scope.description = '';
+          });
       };
 
     /**

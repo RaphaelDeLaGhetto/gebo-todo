@@ -30,6 +30,8 @@ angular.module('geboClientApp')
       verificationEndpoint: REQUIRED_AND_MISSING,
       saveEndpoint: null,
       appDataEndpoint: null,
+      lsDataEndpoint: null,
+      cpDataEndpoint: null,
       localStorageName: 'accessToken',
       scopes: []
     };
@@ -260,68 +262,87 @@ angular.module('geboClientApp')
       };
 
     /**
-     * Save data to the user's profile
+     * Save data to the client's collection on 
+     * the user's profile (or wherever).
      *
      * @param string
      */
-    var _saveToProfile = function(data) {
-
-        var Data = $resource(_config.saveEndpoint,
-                        {  },
-                        { store: { method: 'PUT' }});
-
-        if (!data || Object.keys(data).length === 0) {
-          return;
-        }
-
-        var dataResource = new Data();
-        dataResource.access_token = _get();
-        dataResource.data = data;
-
-        dataResource.$store(function(val, res) {
-            console.log('Success storing');       
-            console.log(val);
-        },
-        function(res) {
-            console.log('Error storing');       
-            console.log(res);       
-        });
-      };
-
-    /**
-     * Retrieve app data from the user's profile
-     *
-     * @param string
-     */
-    var _retrieveFromProfile = function(docName) {
+    var _save= function(unsavedData) {
         var deferred = $q.defer();
 
-        var Data;
-        if (docName) {
-          Data = $resource(_config.appDataEndpoint,
-                      { access_token: _get(),
-                        doc: docName },
-                      { retrieve: { method: 'GET' }});
-        }
-        else {
-          Data = $resource(_config.appDataEndpoint,
-                      { access_token: _get(),
-                        doc: '' },
-                      { retrieve: { method: 'GET', isArray: true }});
-        }
+        unsavedData.access_token = _get();
 
-        var dataResource = new Data();
-
-        dataResource.$retrieve(function(val) {
-            console.log(val);
-            deferred.resolve(val);
-        },
-        function(err) {
-            deferred.reject(err);
-        });
+        $http.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+        $http.post(_config.saveEndpoint, unsavedData).
+                success(
+                    function(savedData) {
+                        deferred.resolve(savedData);
+                      }).
+                error(
+                    function(err) {
+                        deferred.reject(err);
+                      });
+//        var Data = $resource(_config.saveEndpoint, unsavedData); 
+//        var data = new Data();
+//
+//        data.$save(function(val, res) {
+//            deferred.resolve(val);
+//          }, 
+//        function(res) {
+//            deferred.reject(res);    
+//          });
 
         return deferred.promise;
       };
+
+    /**
+     * Retrieve a collection listing
+     */
+    var _ls = function() {
+        var deferred = $q.defer();
+
+        var Ls = $resource(_config.lsDataEndpoint, { access_token: _get() });
+
+        var listing = Ls.query();
+
+        deferred.resolve(listing);
+        return deferred.promise;
+      };
+
+    /**
+     * Copy a document from the server to the client
+     *
+     * @param string
+     */
+    var _cp = function(docName) {
+        var deferred = $q.defer();
+
+        var Cp = $resource(_config.cpDataEndpoint,
+                        { access_token: _get(),
+                          doc: docName});
+
+        var doc = Cp.get();
+
+        deferred.resolve(doc);
+        return deferred.promise;
+      };
+
+
+    /**
+     * Encode embedded JSON
+     *
+     * From: http://blog.tryfinally.co.za/2012/12/form-url-encoded-post-with-angularjs.html
+     */
+    function _formEncode(obj) {
+        var jsonString = '';
+        for (var key in obj) {
+            if (jsonString.length != 0) {
+              jsonString += '&'
+            }
+            jsonString += key + '=' + $filter('json')(obj[key]);
+        }
+        return jsonString;
+      }
 
     /**
      * API
@@ -331,20 +352,23 @@ angular.module('geboClientApp')
               return _config.appDataEndpoint;
             },
       clear: _clear,
+      cp: _cp,
       data: function() {
               return _data;
             },
+      formEncode: _formEncode,
       get: _get,
       getTokenByPopup: _getTokenByPopup,
       getParams: _getParams,
+      ls: _ls,
       objectToQueryString: _objectToQueryString,
-      retrieveFromProfile: _retrieveFromProfile,
+//      retrieveFromProfile: _retrieveFromProfile,
       verify: _verify,
       verifyAsync: _verifyAsync,
       saveEndpoint: function() {
               return _config.saveEndpoint;
             },
-      saveToProfile: _saveToProfile,
+      save: _save,
       set: _set,
       setParams: _setParams,
     };
