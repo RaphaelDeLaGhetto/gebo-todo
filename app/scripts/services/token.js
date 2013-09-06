@@ -348,9 +348,6 @@ angular.module('geboClientApp')
      * API
      */
     return {
-      appDataEndpoint: function() {
-              return _config.appDataEndpoint;
-            },
       clear: _clear,
       cp: _cp,
       data: function() {
@@ -362,12 +359,8 @@ angular.module('geboClientApp')
       getParams: _getParams,
       ls: _ls,
       objectToQueryString: _objectToQueryString,
-//      retrieveFromProfile: _retrieveFromProfile,
       verify: _verify,
       verifyAsync: _verifyAsync,
-      saveEndpoint: function() {
-              return _config.saveEndpoint;
-            },
       save: _save,
       set: _set,
       setParams: _setParams,
