@@ -737,9 +737,14 @@ describe('Controller: AppCtrl', function () {
      */
     describe('init', function() {
         beforeEach(function() {
-            $httpBackend.whenGET(APP_DATA_ENDPOINT +
+            $httpBackend.when('QUERY', APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=').
-                    respond([VERIFICATION_DATA]);
+                    respond(VERIFICATION_DATA);
+
+            $httpBackend.whenGET(APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=some_doc').
+                    respond(VERIFICATION_DATA);
+
 
 //            spyOn(Token, 'retrieveFromProfile').andCallFake(function() {
 //                var deferred = $q.defer();
@@ -750,9 +755,8 @@ describe('Controller: AppCtrl', function () {
          });
 
         it('should load the app data', function() {
-            $httpBackend.expectGET(APP_DATA_ENDPOINT +
-                    '?access_token=' + ACCESS_TOKEN + '&doc=').
-                    respond([VERIFICATION_DATA]);
+            $httpBackend.expect('QUERY', APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=');
 
             expect(scope.todoLists.length).toBe(0);
 
@@ -763,8 +767,10 @@ describe('Controller: AppCtrl', function () {
             rootScope.$digest();
 //            expect(Token.retrieveFromProfile).toHaveBeenCalled();
 
+//            console.log('scope.todoLists');
+//            console.log(scope.todoLists);
             expect(scope.todoLists.length).toBe(1);
-            expect(scope.todoLists.id).toBe('1');
+            expect(scope.todoLists[0].id).toBe('1');
             expect(scope.todoLists[0].name).toBe('dan');
             expect(scope.todoLists[0].email).toBe('dan@email.com');
             expect(scope.todoLists[0].scope).toEqual(['*']);

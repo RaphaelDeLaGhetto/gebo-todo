@@ -135,8 +135,9 @@ describe('Service: Token', function () {
             });
             token.set(ACCESS_TOKEN);
 
-            $httpBackend.whenGET(APP_DATA_ENDPOINT +
-                    '?access_token=' + ACCESS_TOKEN + '&doc=').respond(VERIFICATION_DATA);
+            $httpBackend.when('QUERY', APP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&doc=').
+                    respond(VERIFICATION_DATA);
 
             $httpBackend.whenGET(APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=some_doc').
@@ -144,7 +145,7 @@ describe('Service: Token', function () {
          });
 
         it('should GET all relevant docs from the database', function() {
-            $httpBackend.expectGET(APP_DATA_ENDPOINT +
+            $httpBackend.expect('QUERY', APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=');
             
             token.retrieveFromProfile().

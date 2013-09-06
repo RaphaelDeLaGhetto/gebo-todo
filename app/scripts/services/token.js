@@ -296,14 +296,24 @@ angular.module('geboClientApp')
     var _retrieveFromProfile = function(docName) {
         var deferred = $q.defer();
 
-        var Data = $resource(_config.appDataEndpoint,
-                        { access_token: _get(),
-                          doc: docName || '' },
-                        { retrieve: { method: 'GET' }});
+        var Data;
+        if (docName) {
+          Data = $resource(_config.appDataEndpoint,
+                      { access_token: _get(),
+                        doc: docName },
+                      { retrieve: { method: 'GET' }});
+        }
+        else {
+          Data = $resource(_config.appDataEndpoint,
+                      { access_token: _get(),
+                        doc: '' },
+                      { retrieve: { method: 'QUERY' }});
+        }
 
         var dataResource = new Data();
 
         dataResource.$retrieve(function(val) {
+            console.log(val);
             deferred.resolve(val);
         },
         function(err) {
