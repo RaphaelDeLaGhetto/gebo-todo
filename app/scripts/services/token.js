@@ -307,7 +307,7 @@ angular.module('geboClientApp')
           Data = $resource(_config.appDataEndpoint,
                       { access_token: _get(),
                         doc: '' },
-                      { retrieve: { method: 'QUERY' }});
+                      { retrieve: { method: 'GET', isArray: true }});
         }
 
         var dataResource = new Data();

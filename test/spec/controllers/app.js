@@ -737,9 +737,11 @@ describe('Controller: AppCtrl', function () {
      */
     describe('init', function() {
         beforeEach(function() {
-            $httpBackend.when('QUERY', APP_DATA_ENDPOINT +
+            $httpBackend.whenGET(APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=').
-                    respond(VERIFICATION_DATA);
+//                    respond([{a:'1', b:'2'},{c:'3', d:'4'}]);
+//                    respond(VERIFICATION_DATA);
+                    respond(function() { return [VERIFICATION_DATA, VERIFICATION_DATA]; });
 
             $httpBackend.whenGET(APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=some_doc').
@@ -755,20 +757,20 @@ describe('Controller: AppCtrl', function () {
          });
 
         it('should load the app data', function() {
-            $httpBackend.expect('QUERY', APP_DATA_ENDPOINT +
+            $httpBackend.expectGET(APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=');
 
             expect(scope.todoLists.length).toBe(0);
 
             scope.init();
             
-            $httpBackend.flush();
 //            scope.$digest();
-            rootScope.$digest();
-//            expect(Token.retrieveFromProfile).toHaveBeenCalled();
+//            rootScope.$digest();
+            $httpBackend.flush();
+            rootScope.$apply();
 
-//            console.log('scope.todoLists');
-//            console.log(scope.todoLists);
+            console.log('scope.todoLists');
+            console.log(scope.todoLists);
             expect(scope.todoLists.length).toBe(1);
             expect(scope.todoLists[0].id).toBe('1');
             expect(scope.todoLists[0].name).toBe('dan');

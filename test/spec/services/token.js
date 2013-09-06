@@ -25,6 +25,7 @@ describe('Service: Token', function () {
 
     // instantiate service
     var token,
+        $rootScope,
         $httpBackend;
 
     beforeEach(function() {
@@ -33,6 +34,7 @@ describe('Service: Token', function () {
             token = _Token_;
 
             $httpBackend = $injector.get('$httpBackend');
+            $rootScope = $injector.get('$rootScope');
 
             $httpBackend.when('GET', VERIFICATION_ENDPOINT + 
                     '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
@@ -135,9 +137,11 @@ describe('Service: Token', function () {
             });
             token.set(ACCESS_TOKEN);
 
-            $httpBackend.when('QUERY', APP_DATA_ENDPOINT +
+            $httpBackend.whenGET(APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=').
-                    respond(VERIFICATION_DATA);
+//                    respond([VERIFICATION_DATA]);
+//                    respond(VERIFICATION_DATA);
+                    respond(function() { return [VERIFICATION_DATA, VERIFICATION_DATA]; });
 
             $httpBackend.whenGET(APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=some_doc').
@@ -145,18 +149,24 @@ describe('Service: Token', function () {
          });
 
         it('should GET all relevant docs from the database', function() {
-            $httpBackend.expect('QUERY', APP_DATA_ENDPOINT +
+            $httpBackend.expectGET(APP_DATA_ENDPOINT +
                     '?access_token=' + ACCESS_TOKEN + '&doc=');
             
-            token.retrieveFromProfile().
-                then(function(data) {
-                    expect(data.id).toBe('1');
-                    expect(data.name).toBe('dan');
-                    expect(data.email).toBe('dan@email.com');
-                    expect(data.scope).toEqual(['*']);
-                });
-            expect(localStorage.getItem).toHaveBeenCalled();
+            var promise = token.retrieveFromProfile();
+            var data;
+            promise.then(function(d) { data = d; });
+
             $httpBackend.flush();
+            //$rootScope.$digest();
+            $rootScope.$apply();
+
+                    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                    expect(data[1].id).toBe('1');
+                    expect(data[1].name).toBe('dan');
+                    expect(data[1].email).toBe('dan@email.com');
+                    expect(data[1].scope).toEqual(['*']);
+       //        });
+            expect(localStorage.getItem).toHaveBeenCalled();
         });
 
         it('should GET the requested doc from the database', function() {
