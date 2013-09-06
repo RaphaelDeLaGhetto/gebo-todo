@@ -32,6 +32,8 @@ angular.module('geboClientApp')
       appDataEndpoint: null,
       lsDataEndpoint: null,
       cpDataEndpoint: null,
+      rmDataEndpoint: null,
+      rmdirDataEndpoint: null,
       localStorageName: 'accessToken',
       scopes: []
     };
@@ -330,6 +332,8 @@ angular.module('geboClientApp')
 
     /**
      * Encode embedded JSON
+     *
+     * Not currently using this, but it may be useful soon
      *
      * From: http://blog.tryfinally.co.za/2012/12/form-url-encoded-post-with-angularjs.html
      */

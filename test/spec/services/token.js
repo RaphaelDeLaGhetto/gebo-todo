@@ -8,6 +8,8 @@ describe('Service: Token', function () {
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
         APP_DATA_ENDPOINT = 'http://theirhost.com/api/retrieve',
         LS_DATA_ENDPOINT = 'http://theirhost.com/api/ls',
+        RM_DATA_ENDPOINT = 'http://theirhost.com/api/rm',
+        RMDIR_DATA_ENDPOINT = 'http://theirhost.com/api/rmdir',
         SAVE_ENDPOINT = 'http://theirhost.com/api/save',
         CP_DATA_ENDPOINT = 'http://theirhost.com/api/cp',
         LOCALSTORAGE_NAME = 'accessToken',
@@ -205,6 +207,10 @@ describe('Service: Token', function () {
      */
     describe('Configured operation:', function() {
 
+        var unsavedData,
+            savedData,
+            expectedUnsavedData;
+    
         beforeEach(function() {
             token.setParams({
                   clientId: CLIENT_ID,
@@ -215,11 +221,23 @@ describe('Service: Token', function () {
                   appDataEndpoint: APP_DATA_ENDPOINT,
                   lsDataEndpoint: LS_DATA_ENDPOINT,
                   cpDataEndpoint: CP_DATA_ENDPOINT,
+                  rmDataEndpoint: RM_DATA_ENDPOINT,
+                  rmdirDataEndpoint: RMDIR_DATA_ENDPOINT,
                   localStorageName: 'accessToken',
                   scopes: SCOPES
                 });
             token.set(ACCESS_TOKEN);
-        });
+
+            unsavedData = angular.copy(DATA_TO_SAVE);
+
+            expectedUnsavedData = angular.copy(unsavedData);
+            expectedUnsavedData.access_token = ACCESS_TOKEN;
+
+            savedData = angular.copy(unsavedData);
+            savedData.id = 'some mongo id 1234';
+    
+            $httpBackend.when('POST', SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
+         });
 
         /**
          * verifyAsync
@@ -348,22 +366,6 @@ describe('Service: Token', function () {
          */
         describe('save', function() {
     
-            var unsavedData,
-                savedData,
-                expectedUnsavedData;
-    
-            beforeEach(function() {
-                unsavedData = angular.copy(DATA_TO_SAVE);
-    
-                expectedUnsavedData = angular.copy(unsavedData);
-                expectedUnsavedData.access_token = ACCESS_TOKEN;
-    
-                savedData = angular.copy(unsavedData);
-                savedData.id = 'some mongo id 1234';
-    
-                $httpBackend.when('POST', SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
-             });
-    
             it('should try to PUT something in the database', function() {
                 $httpBackend.expect('POST', SAVE_ENDPOINT, expectedUnsavedData);
     
@@ -386,10 +388,42 @@ describe('Service: Token', function () {
          * rm 
          */
         describe('rm', function() {
-    
+
+            beforeEach(function() {
+                $httpBackend.when('DELETE', RM_DATA_ENDPOINT, savedData).
+                    respond(200);
+                $httpBackend.when('DELETE', RM_DATA_ENDPOINT, unsavedData).
+                    respond(204);
+             });
+ 
             it('should remove the document from the collection', function() {
+                $httpBackend.expect('DELETE', RM_DATA_ENDPOINT, savedData);
+                var deferred = token.rm(savedData);
+
+                var code;
+                deferred.then(function(res) {
+                    code = res;
+                });
+                
+                $httpBackend.flush();
+
+                expect(code).toBe(200);
             });
-        });
+
+            it('should not barf if asked to remove a document that does not exist', function() {
+                $httpBackend.expect('DELETE', RM_DATA_ENDPOINT, unsavedData);
+                var deferred = token.rm(unsavedData);
+
+                var code;
+                deferred.then(function(res) {
+                    code = res;
+                });
+                
+                $httpBackend.flush();
+
+                expect(code).toBe(204);
+            });
+         });
     
         /**
          * rmdir 
