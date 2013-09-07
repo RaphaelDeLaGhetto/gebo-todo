@@ -329,6 +329,54 @@ angular.module('geboClientApp')
         return deferred.promise;
       };
 
+    /**
+     * Remove a document from the collection
+     *
+     * @param string
+     *
+     * @return promise
+     */
+    var _rm = function(docName) {
+        var deferred = $q.defer();
+
+//        $http.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+        $http.delete(_config.rmDataEndpoint, { data: { doc: docName, access_token: _get() }}).
+                success(
+                    function(res) {
+                        deferred.resolve(res);
+                      }).
+                error(
+                    function(err) {
+                        deferred.reject(err);
+                      });
+
+        return deferred.promise;
+      };
+
+    /**
+     * Remove a collection
+     *
+     * @param string
+     *
+     * @return promise
+     */
+    var _rmdir = function(collectionName) {
+        var deferred = $q.defer();
+
+//        $http.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+        $http.delete(_config.rmdirDataEndpoint, { data: { collection: collectionName, access_token: _get() }}).
+                success(
+                    function(res) {
+                        deferred.resolve(res);
+                      }).
+                error(
+                    function(err) {
+                        deferred.reject(err);
+                      });
+
+        return deferred.promise;
+      };
+
 
     /**
      * Encode embedded JSON
@@ -365,6 +413,8 @@ angular.module('geboClientApp')
       objectToQueryString: _objectToQueryString,
       verify: _verify,
       verifyAsync: _verifyAsync,
+      rm: _rm,
+      rmdir: _rmdir,
       save: _save,
       set: _set,
       setParams: _setParams,

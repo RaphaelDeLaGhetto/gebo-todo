@@ -389,16 +389,19 @@ describe('Service: Token', function () {
          */
         describe('rm', function() {
 
+            var DOC_NAME = 'someDoc',
+                NO_SUCH_DOC = 'doesNotExist';
+
             beforeEach(function() {
-                $httpBackend.when('DELETE', RM_DATA_ENDPOINT, savedData).
-                    respond(200);
-                $httpBackend.when('DELETE', RM_DATA_ENDPOINT, unsavedData).
-                    respond(204);
-             });
+                $httpBackend.when('DELETE', RM_DATA_ENDPOINT, { doc: DOC_NAME, access_token: ACCESS_TOKEN }).
+                    respond(200, 'Okay');
+                $httpBackend.when('DELETE', RM_DATA_ENDPOINT, { doc: NO_SUCH_DOC, access_token: ACCESS_TOKEN }).
+                    respond(204, 'No such document');
+            });
  
             it('should remove the document from the collection', function() {
-                $httpBackend.expect('DELETE', RM_DATA_ENDPOINT, savedData);
-                var deferred = token.rm(savedData);
+                $httpBackend.expect('DELETE', RM_DATA_ENDPOINT, { doc: DOC_NAME, access_token: ACCESS_TOKEN });
+                var deferred = token.rm(DOC_NAME);
 
                 var code;
                 deferred.then(function(res) {
@@ -407,12 +410,12 @@ describe('Service: Token', function () {
                 
                 $httpBackend.flush();
 
-                expect(code).toBe(200);
+                expect(code).toBe('Okay');
             });
 
             it('should not barf if asked to remove a document that does not exist', function() {
-                $httpBackend.expect('DELETE', RM_DATA_ENDPOINT, unsavedData);
-                var deferred = token.rm(unsavedData);
+                $httpBackend.expect('DELETE', RM_DATA_ENDPOINT, { doc: NO_SUCH_DOC, access_token: ACCESS_TOKEN });
+                var deferred = token.rm(NO_SUCH_DOC);
 
                 var code;
                 deferred.then(function(res) {
@@ -421,7 +424,7 @@ describe('Service: Token', function () {
                 
                 $httpBackend.flush();
 
-                expect(code).toBe(204);
+                expect(code).toBe('No such document');
             });
          });
     
@@ -429,8 +432,43 @@ describe('Service: Token', function () {
          * rmdir 
          */
         describe('rmdir', function() {
-    
+
+            var COLLECTION_NAME = 'someCollection',
+                NO_SUCH_COLLECTION = 'doesNotExist';
+
+             beforeEach(function() {
+                $httpBackend.when('DELETE', RMDIR_DATA_ENDPOINT, { collection: COLLECTION_NAME, access_token: ACCESS_TOKEN }).
+                    respond(200, 'Okay');
+                $httpBackend.when('DELETE', RMDIR_DATA_ENDPOINT, { collection: NO_SUCH_COLLECTION, access_token: ACCESS_TOKEN }).
+                    respond(204, 'No such collection');
+             });
+ 
             it('should remove the collection', function() {
+                $httpBackend.expect('DELETE', RMDIR_DATA_ENDPOINT, { collection: COLLECTION_NAME, access_token: ACCESS_TOKEN });
+                var deferred = token.rmdir(COLLECTION_NAME);
+
+                var code;
+                deferred.then(function(res) {
+                    code = res;
+                });
+                
+                $httpBackend.flush();
+
+                expect(code).toBe('Okay');
+            });
+
+            it('should not barf if asked to remove a collection that does not exist', function() {
+                $httpBackend.expect('DELETE', RMDIR_DATA_ENDPOINT, { collection: NO_SUCH_COLLECTION, access_token: ACCESS_TOKEN });
+                var deferred = token.rmdir(NO_SUCH_COLLECTION);
+
+                var code;
+                deferred.then(function(res) {
+                    code = res;
+                });
+                
+                $httpBackend.flush();
+
+                expect(code).toBe('No such collection');
             });
         });
     });
