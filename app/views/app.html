@@ -1,10 +1,25 @@
-<div ng-controller="AppCtrl">
+<div ng-controller="AppCtrl" ng-init="init()">
     <h2>Lists of things <i>todo</i></h2>
     <form ng-submit="create()">
-        <input type="text" ng-model="description"
+        <input type="text" ng-model="name"
             size=30 placeholder="My new todo list" />
         <input class="btn-primary" type="submit" value="add" />
     </form>
-
-    <div ui-view></div>
+    <tabset class="tabs-left">
+        <tab ng-repeat="list in todoLists">
+        <tab-heading>
+            {{list.name}}
+            <i class="icon-minus-sign" ng-click="destroy(list._id)"></i>
+        </tab-heading>
+            <p>Owner: {{list.owner.name}}  </p>
+            <form ng-submit="addTodo($index)">
+                <input type="text" ng-model="$parent.todoDescription"
+                    size=30 placeholder="My new todo" />
+    
+                <input class="btn-primary" type="submit" value="add" />
+            </form>
+    
+            <div ui-view></div>
+        </tab>
+    </tabset>
 </div>

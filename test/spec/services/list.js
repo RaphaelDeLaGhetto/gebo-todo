@@ -28,7 +28,8 @@ describe('Service: List', function () {
         ACCESS_TOKEN = '1234';
  
 
-    var DESCRIPTION = 'A new thing todo',
+    var LIST_NAME = 'Things todo',
+        DESCRIPTION = 'A new thing todo',
         TODO = {
             description: DESCRIPTION,
             owner: OWNER,
@@ -45,19 +46,8 @@ describe('Service: List', function () {
         $httpBackend;
 
     beforeEach(inject(function (_List_, $injector) {
-//        Token = $injector.get('Token');
-//        Token.setParams({
-//          clientId: CLIENT_ID,
-//          redirectUri: REDIRECT_URI,
-//          authorizationEndpoint: AUTHORIZATION_ENDPOINT,
-//          verificationEndpoint: VERIFICATION_ENDPOINT,
-//          saveEndpoint: SAVE_ENDPOINT,
-//          localStorageName: 'accessToken',
-//          scopes: SCOPES
-//        });
-
         List = _List_;
-        listInstance = List.getNewObject(DESCRIPTION, OWNER);
+        listInstance = List.getNewObject(LIST_NAME, OWNER);
 
 //        $httpBackend = $injector.get('$httpBackend');
 //        $httpBackend.whenPUT(SAVE_ENDPOINT, { data: DATA_TO_SAVE }, { access_token: ACCESS_TOKEN }).respond(PUT_SUCCESS);
@@ -102,8 +92,8 @@ describe('Service: List', function () {
      */
     describe('getNewObject', function() {
         it('should initialize a list', function() {
-            var list = List.getNewObject(DESCRIPTION, OWNER);
-            expect(list.description).toBe(DESCRIPTION);
+            var list = List.getNewObject(LIST_NAME, OWNER);
+            expect(list.name).toBe(LIST_NAME);
             expect(list.owner).toBe(OWNER);
             expect(list.date).toBeCloseTo(new Date());
             expect(list.watchers).toEqual([]);

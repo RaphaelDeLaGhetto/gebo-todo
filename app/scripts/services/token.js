@@ -284,15 +284,6 @@ angular.module('geboClientApp')
                     function(err) {
                         deferred.reject(err);
                       });
-//        var Data = $resource(_config.saveEndpoint, unsavedData); 
-//        var data = new Data();
-//
-//        data.$save(function(val, res) {
-//            deferred.resolve(val);
-//          }, 
-//        function(res) {
-//            deferred.reject(res);    
-//          });
 
         return deferred.promise;
       };
@@ -305,9 +296,15 @@ angular.module('geboClientApp')
 
         var Ls = $resource(_config.lsDataEndpoint, { access_token: _get() });
 
-        var listing = Ls.query();
+        Ls.query(function(data) {
+            console.log('Ls.query');
+            deferred.resolve(data);
+          },
+          function(err) {
+            console.log(err);
+            deferred.reject(err)
+          });
 
-        deferred.resolve(listing);
         return deferred.promise;
       };
 
@@ -323,9 +320,10 @@ angular.module('geboClientApp')
                         { access_token: _get(),
                           doc: docName});
 
-        var doc = Cp.get();
+        Cp.get(function(data) {
+            deferred.resolve(data);
+          });
 
-        deferred.resolve(doc);
         return deferred.promise;
       };
 

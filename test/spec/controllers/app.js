@@ -82,24 +82,12 @@ describe('Controller: AppCtrl', function () {
         DATA_TO_SAVE = List.getNewObject('a new list', VERIFICATION_DATA);
         DATA_TO_SAVE.date = 'Today';
 
-//        $httpBackend.whenPUT(SAVE_ENDPOINT, {
-//            access_token: ACCESS_TOKEN,
-//            data: DATA_TO_SAVE
-//        }).respond(PUT_SUCCESS);
-//
-//        DATA_TO_SAVE = List.getNewObject('another new list', VERIFICATION_DATA);
-//        DATA_TO_SAVE.date = 'Today';
-//        $httpBackend.whenPUT(SAVE_ENDPOINT, {
-//            access_token: ACCESS_TOKEN,
-//            data: DATA_TO_SAVE
-//        }).respond(PUT_SUCCESS);
-
         /**
          * Most of the tests below require the creation
          * of a todo list
          */
         expectedUnsavedData = angular.copy(DATA_TO_SAVE);
-        expectedUnsavedData.description = 'My new list';
+        expectedUnsavedData.name = 'My new list';
         expectedUnsavedData.access_token = ACCESS_TOKEN;
 
         var savedData = angular.copy(expectedUnsavedData);
@@ -120,9 +108,9 @@ describe('Controller: AppCtrl', function () {
             return VERIFICATION_DATA;
         });
 
-        spyOn(List, 'getNewObject').andCallFake(function(description, user) {
+        spyOn(List, 'getNewObject').andCallFake(function(name, user) {
             var data = angular.copy(DATA_TO_SAVE);
-            data.description = description;
+            data.name = name;
             return data;
         });
 
@@ -148,21 +136,21 @@ describe('Controller: AppCtrl', function () {
 
         it('should add a new todo list to the list of todos', function() {
             var data = angular.copy(DATA_TO_SAVE);
-            data.description = 'My new list';
+            data.name = 'My new list';
 
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData);
 
             expect(scope.todoLists.length).toBe(0);
 
-            scope.description = 'My new list';
+            scope.name = 'My new list';
             scope.create(); 
 
             $httpBackend.flush();
 
-            expect(scope.description).toBe('');
+            expect(scope.name).toBe('');
             expect(scope.todoLists.length).toBe(1);
             expect(scope.todoLists[0].id).toBe('1a2b3c');
-            expect(scope.todoLists[0].description).toBe('My new list');
+            expect(scope.todoLists[0].name).toBe('My new list');
             expect(scope.todoLists[0].owner.name).toEqual(VERIFICATION_DATA.name);
             expect(scope.todoLists[0].owner.email).toEqual(VERIFICATION_DATA.email);
             expect(scope.todoLists[0].owner.id).toEqual(VERIFICATION_DATA.id);
@@ -172,18 +160,18 @@ describe('Controller: AppCtrl', function () {
             expect(List.getNewObject).toHaveBeenCalled();
         });
 
-        it('should not add a new todo list if no description is supplied', function() {
+        it('should not add a new todo list if no name is supplied', function() {
             expect(scope.todoLists.length).toBe(0);
-            scope.description = '';
+            scope.name = '';
             scope.create(); 
             expect(scope.todoLists.length).toBe(0);
         });
     });
 
     /**
-     * destroy
+     * rm
      */
-    describe('destroy', function() {
+    describe('rm', function() {
 
         var expectedData,
             savedData;
@@ -191,7 +179,7 @@ describe('Controller: AppCtrl', function () {
         beforeEach(function() {
             // For the first new list
             expectedData = angular.copy(DATA_TO_SAVE);
-            expectedData.description = 'a new list';
+            expectedData.name = 'a new list';
             expectedData.access_token = ACCESS_TOKEN;
 
             savedData = angular.copy(expectedData)
@@ -200,16 +188,16 @@ describe('Controller: AppCtrl', function () {
 
             // For the second new list
             expectedData = angular.copy(DATA_TO_SAVE);
-            expectedData.description = 'another new list';
+            expectedData.name = 'another new list';
             expectedData.access_token = ACCESS_TOKEN;
             savedData = angular.copy(expectedData)
             savedData.id = '123';
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
 
  
-            scope.description = 'a new list';
+            scope.name = 'a new list';
             scope.create(); 
-            scope.description = 'another new list';
+            scope.name = 'another new list';
             scope.create(); 
   
             $httpBackend.flush();
@@ -223,21 +211,21 @@ describe('Controller: AppCtrl', function () {
 
             expect(scope.todoLists.length).toBe(2);
 
-            scope.destroy(0);
+            scope.rm(0);
 
 //            $httpBackend.flush();
             expect(scope.todoLists.length).toBe(1);
-            scope.destroy(0);
+            scope.rm(0);
             expect(scope.todoLists.length).toBe(0);
         });
 
         it('should not barf if removing a todo list from an empty list', function() {
             expect(scope.todoLists.length).toBe(2);
-            scope.destroy(1);
+            scope.rm(1);
             expect(scope.todoLists.length).toBe(1);
-            scope.destroy(0);
+            scope.rm(0);
             expect(scope.todoLists.length).toBe(0);
-            scope.destroy(0);
+            scope.rm(0);
             expect(scope.todoLists.length).toBe(0);
         });
 
@@ -245,17 +233,17 @@ describe('Controller: AppCtrl', function () {
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
 
             expect(scope.todoLists.length).toBe(2);
-            scope.description = 'another new list';
+            scope.name = 'another new list';
             scope.create();
 
             $httpBackend.flush();
             expect(scope.todoLists.length).toBe(3);
 
-            scope.destroy(2);
+            scope.rm(2);
             expect(scope.todoLists.length).toBe(2);
-            scope.destroy(-1);
+            scope.rm(-1);
             expect(scope.todoLists.length).toBe(2);
-            scope.destroy(0);
+            scope.rm(0);
             expect(scope.todoLists.length).toBe(1);
         });
     });
@@ -271,7 +259,7 @@ describe('Controller: AppCtrl', function () {
         beforeEach(function() {
             // For the first new list
             expectedData = angular.copy(DATA_TO_SAVE);
-            expectedData.description = 'a new list';
+            expectedData.name = 'a new list';
             expectedData.access_token = ACCESS_TOKEN;
 
             savedData = angular.copy(expectedData)
@@ -280,26 +268,26 @@ describe('Controller: AppCtrl', function () {
 
             // For the second new list
             expectedData = angular.copy(DATA_TO_SAVE);
-            expectedData.description = 'another new list';
+            expectedData.name = 'another new list';
             expectedData.access_token = ACCESS_TOKEN;
             savedData = angular.copy(expectedData)
             savedData.id = '123';
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
 
-            scope.description = 'a new list';
+            scope.name = 'a new list';
             scope.create(); 
-            scope.description = 'another new list';
+            scope.name = 'another new list';
             scope.create(); 
 
             $httpBackend.flush();
             expect(scope.todoLists.length).toBe(2);
 
             expect(scope.todoLists[0].todos.length).toBe(0);
-            expect(scope.todoLists[0].description).toBe('a new list');
+            expect(scope.todoLists[0].name).toBe('a new list');
             expect(scope.todoLists[0].id).toBe('abc');
 
             expect(scope.todoLists[1].todos.length).toBe(0);
-            expect(scope.todoLists[1].description).toBe('another new list');
+            expect(scope.todoLists[1].name).toBe('another new list');
             expect(scope.todoLists[1].id).toBe('123');
          });
 

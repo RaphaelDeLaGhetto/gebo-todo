@@ -16,8 +16,11 @@ angular.module('geboClientApp')
     $scope.todoLists = [];
 
     $scope.init = function() {
+        console.log('init');
         Token.ls().
           then(function(data) {
+                console.log('then');
+                console.log(data);
                 $scope.todoLists = data;
             });
       };
@@ -34,14 +37,14 @@ angular.module('geboClientApp')
      * Create a new todo list
      */
     $scope.create = function() {
-        if (!$scope.description) {
+        if (!$scope.name) {
           return;
         }
-        var list = List.getNewObject($scope.description, Token.data());
+        var list = List.getNewObject($scope.name, Token.data());
 
         Token.save(list).then(function(savedList) {
             $scope.todoLists.push(savedList);
-            $scope.description = '';
+            $scope.name = '';
           });
       };
 
@@ -50,7 +53,9 @@ angular.module('geboClientApp')
      *
      * @param index
      */
-    $scope.destroy = function(index) {
+    $scope.rm = function(index) {
+        console.log('destroy');
+        console.log(index);
         if (!_inRange(index)) {
           return;
         }
@@ -218,4 +223,9 @@ angular.module('geboClientApp')
         }
         return true;
       };
+    
+    /**
+     * Initialize on page load
+     */
+  //  $scope.init();
   });

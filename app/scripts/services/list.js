@@ -6,8 +6,8 @@ angular.module('geboClientApp')
     /**
      * List
      */
-    var List = function(description, owner) {
-        this.description = description;
+    var List = function(name, owner) {
+        this.name = name;
         this.owner = owner;
         this.date = new Date();
         this.watchers = [];
