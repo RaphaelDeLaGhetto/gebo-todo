@@ -8,6 +8,7 @@ describe('Controller: AppCtrl', function () {
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
         SAVE_ENDPOINT = 'http://theirhost.com/api/save',
         LS_DATA_ENDPOINT = 'http://theirhost.com/api/ls',
+        RM_DATA_ENDPOINT = 'http://theirhost.com/api/rm',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
@@ -54,6 +55,7 @@ describe('Controller: AppCtrl', function () {
           verificationEndpoint: VERIFICATION_ENDPOINT,
           saveEndpoint: SAVE_ENDPOINT,
           lsDataEndpoint: LS_DATA_ENDPOINT,
+          rmDataEndpoint: RM_DATA_ENDPOINT,
           localStorageName: 'accessToken',
           scopes: SCOPES
         });
@@ -207,13 +209,13 @@ describe('Controller: AppCtrl', function () {
         });
 
         it('should remove the todo list from the lists of todos', function() {
-//            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData);
+            $httpBackend.expectDELETE(RM_DATA_ENDPOINT, savedData);
 
             expect(scope.todoLists.length).toBe(2);
 
             scope.rm(0);
 
-//            $httpBackend.flush();
+            $httpBackend.flush();
             expect(scope.todoLists.length).toBe(1);
             scope.rm(0);
             expect(scope.todoLists.length).toBe(0);
@@ -257,6 +259,10 @@ describe('Controller: AppCtrl', function () {
             savedData;
 
         beforeEach(function() {
+            $httpBackend.whenGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN).
+                    respond([{ _id: '1', name: 'doc 1'},
+                             { _id: '2', name: 'doc 2'}]);
+
             // For the first new list
             expectedData = angular.copy(DATA_TO_SAVE);
             expectedData.name = 'a new list';
@@ -668,23 +674,31 @@ describe('Controller: AppCtrl', function () {
          */
         describe('relieveTodo', function() {
             beforeEach(function() {
+//                $httpBackend.whenGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN).
+//                    respond([{ _id: '1', name: 'doc 1'},
+//                             { _id: '2', name: 'doc 2'}]);;
+
                 expect(scope.todoLists.length).toBe(2);
     
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(0);
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(0);
+                $httpBackend.flush();
                 expect(scope.todoLists[0].todos.length).toBe(2);
     
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(1);
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(1);
+                $httpBackend.flush();
                 expect(scope.todoLists[1].todos.length).toBe(2);
     
                 expect(scope.todoLists[0].todos[0].assignees.length).toBe(0);
                 scope.assignTodo(0, 0, VERIFICATION_DATA);
                 expect(scope.todoLists[0].todos[0].assignees.length).toBe(1);
+
+//                $httpBackend.flush();
             });
     
             it('should remove a user from the task', function() {
@@ -694,6 +708,8 @@ describe('Controller: AppCtrl', function () {
             });
     
             it('should ignore out-of-bound indices', function() {
+                $httpBackend.expectGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN);
+
                 scope.relieveTodo(0, 2, VERIFICATION_DATA);
                 expect(scope.todoLists[1].todos[2]).toBe(undefined);
                 scope.relieveTodo(0, -1, VERIFICATION_DATA);
@@ -702,6 +718,8 @@ describe('Controller: AppCtrl', function () {
                 expect(scope.todoLists[2]).toBe(undefined);
                 scope.relieveTodo(-1, 0, VERIFICATION_DATA);
                 expect(scope.todoLists[-1]).toBe(undefined);
+                
+//                $httpBackend.flush();
             });
          });
     });

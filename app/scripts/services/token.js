@@ -297,11 +297,9 @@ angular.module('geboClientApp')
         var Ls = $resource(_config.lsDataEndpoint, { access_token: _get() });
 
         Ls.query(function(data) {
-            console.log('Ls.query');
             deferred.resolve(data);
           },
           function(err) {
-            console.log(err);
             deferred.reject(err)
           });
 
@@ -334,11 +332,20 @@ angular.module('geboClientApp')
      *
      * @return promise
      */
-    var _rm = function(docName) {
+    var _rm = function(id) {
         var deferred = $q.defer();
 
-//        $http.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
-        $http.delete(_config.rmDataEndpoint, { data: { doc: docName, access_token: _get() }}).
+//        var Rm = $resource(_config.rmDataEndpoint, { _id: id, access_token: _get() });
+//
+//        Rm.remove(function(data) {
+//            deferred.resolve(data);
+//          },
+//          function(err) {
+//            deferred.reject(err)
+//          });
+
+
+        $http.delete(_config.rmDataEndpoint, { params: { _id: id, access_token: _get() }}).
                 success(
                     function(res) {
                         deferred.resolve(res);
@@ -358,11 +365,10 @@ angular.module('geboClientApp')
      *
      * @return promise
      */
-    var _rmdir = function(collectionName) {
+    var _rmdir = function(id) {
         var deferred = $q.defer();
 
-//        $http.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
-        $http.delete(_config.rmdirDataEndpoint, { data: { collection: collectionName, access_token: _get() }}).
+        $http.delete(_config.rmdirDataEndpoint, { params: { _id: id, access_token: _get() }}).
                 success(
                     function(res) {
                         deferred.resolve(res);

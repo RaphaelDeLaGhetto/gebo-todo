@@ -1,14 +1,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .controller('AppCtrl', function ($scope, List, Token, $state, $q) {
-
-//    $state.transitionTo('app');
-//    $state.transitionTo('app.lists');
-//    $state.transitionTo('app.lists.todos');
-//    $state.transitionTo('app.lists.todos.details');
-//    $state.transitionTo('app');
-//    console.log('AppCtrl: have to comment $state.transitionTo for testing');
+  .controller('AppCtrl', function ($scope, List, Token, $q) {
 
     /**
      * The list of todo lists
@@ -16,22 +9,11 @@ angular.module('geboClientApp')
     $scope.todoLists = [];
 
     $scope.init = function() {
-        console.log('init');
         Token.ls().
           then(function(data) {
-                console.log('then');
-                console.log(data);
                 $scope.todoLists = data;
             });
       };
-
-
-    // For testing
-//    $scope.todoLists.push(List.getNewObject('List 1', Token.data()));
-//    $scope.todoLists[0].add('Item 1', Token.data());
-//    $scope.todoLists[0].add('Item 2', Token.data());
-//    $scope.todoLists.push(List.getNewObject('List 2', Token.data()));
-//    console.log(Token.data());
 
     /**
      * Create a new todo list
@@ -45,21 +27,22 @@ angular.module('geboClientApp')
         Token.save(list).then(function(savedList) {
             $scope.todoLists.push(savedList);
             $scope.name = '';
+            $scope.init();
           });
       };
 
     /**
-     * Delete a todo list
+     * Remove a todo list
      *
      * @param index
      */
     $scope.rm = function(index) {
-        console.log('destroy');
-        console.log(index);
         if (!_inRange(index)) {
           return;
         }
-        $scope.todoLists.splice(index, 1);
+        Token.rm($scope.todoLists[index]._id).then(function(res) {
+            $scope.todoLists.splice(index, 1);
+          });
       };
 
     /**
@@ -224,8 +207,4 @@ angular.module('geboClientApp')
         return true;
       };
     
-    /**
-     * Initialize on page load
-     */
-  //  $scope.init();
   });

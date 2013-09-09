@@ -8,8 +8,7 @@
     <tabset class="tabs-left">
         <tab ng-repeat="list in todoLists">
         <tab-heading>
-            {{list.name}}
-            <i class="icon-minus-sign" ng-click="destroy(list._id)"></i>
+             <i class="icon-minus-sign pull-right" ng-click="rm($index)"></i> {{list.name}}
         </tab-heading>
             <p>Owner: {{list.owner.name}}  </p>
             <form ng-submit="addTodo($index)">
