@@ -27,7 +27,7 @@ bower install
 ## Start the client server
 
 ```
-node app.js
+grunt server
 ```
 
 ## Contributing
