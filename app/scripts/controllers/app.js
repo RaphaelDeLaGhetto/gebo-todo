@@ -4,14 +4,20 @@ angular.module('geboClientApp')
   .controller('AppCtrl', function ($scope, List, Token, $q) {
 
     /**
+     * The table of contents (so we don't have to 
+     * download everything all at once
+     */
+    $scope.tableOfContents = [];
+
+    /**
      * The list of todo lists
      */
-    $scope.todoLists = [];
+    $scope.todoLists = {};
 
     $scope.init = function() {
         Token.ls().
           then(function(data) {
-                $scope.todoLists = data;
+                $scope.tableOfContents = data;
             });
       };
 
@@ -25,7 +31,7 @@ angular.module('geboClientApp')
         var list = List.getNewObject($scope.name, Token.data());
 
         Token.save(list).then(function(savedList) {
-            $scope.todoLists.push(savedList);
+            $scope.todoLists[savedList._id] = savedList;
             $scope.name = '';
             $scope.init();
           });
@@ -40,8 +46,14 @@ angular.module('geboClientApp')
         if (!_inRange(index)) {
           return;
         }
-        Token.rm($scope.todoLists[index]._id).then(function(res) {
-            $scope.todoLists.splice(index, 1);
+        var removeId = $scope.tableOfContents[index]._id;
+        Token.rm(removeId).then(function(res) {
+            console.log('BEFORE');
+            console.log($scope.tableOfContents);
+            $scope.tableOfContents.splice(index, 1);
+            console.log('AFTER');
+            console.log($scope.tableOfContents);
+            delete $scope.todoLists[removeId];
           });
       };
 
@@ -51,11 +63,12 @@ angular.module('geboClientApp')
      * @param int
      * @param string
      */
-    $scope.addTodo = function(index, todoDescription) {
+    $scope.addTodo = function(index) {
         if (!_inRange(index) || !$scope.todoDescription) {
           return;
         }
-        $scope.todoLists[index].add($scope.todoDescription, Token.data());
+        var id = $scope.tableOfContents[index]._id;
+        $scope.todoLists[id].add($scope.todoDescription, Token.data());
         $scope.todoDescription = '';
       };
 
@@ -69,7 +82,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].destroy(todoIndex);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].destroy(todoIndex);
       };
 
     /**
@@ -82,7 +96,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].completeTodo(todoIndex);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].completeTodo(todoIndex);
       };
 
     /**
@@ -95,7 +110,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].abandonTodo(todoIndex);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].abandonTodo(todoIndex);
       };
 
     /**
@@ -108,7 +124,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].reopenTodo(todoIndex);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].reopenTodo(todoIndex);
       };
 
     /**
@@ -121,7 +138,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].makeNote(todoIndex, content, Token.data());
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].makeNote(todoIndex, content, Token.data());
       };
 
     /**
@@ -134,7 +152,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].destroyNote(todoIndex);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].destroyNote(todoIndex);
       };
 
     /**
@@ -148,7 +167,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].strikeNote(todoIndex, noteIndex);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].strikeNote(todoIndex, noteIndex);
       };
 
     /**
@@ -162,7 +182,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].unstrikeNote(todoIndex, noteIndex);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].unstrikeNote(todoIndex, noteIndex);
       };
 
     /**
@@ -176,7 +197,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].assignTodo(todoIndex, user);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].assignTodo(todoIndex, user);
       };
 
     /**
@@ -190,7 +212,8 @@ angular.module('geboClientApp')
         if (!_inRange(listIndex)) {
           return;
         }
-        $scope.todoLists[listIndex].relieveTodo(todoIndex, assigneeIndex);
+        var id = $scope.tableOfContents[listIndex]._id;
+        $scope.todoLists[id].relieveTodo(todoIndex, assigneeIndex);
       };
 
     /**
@@ -201,7 +224,8 @@ angular.module('geboClientApp')
      * @return bool
      */
     var _inRange = function(index) {
-        if (index < 0 || index >= $scope.todoLists.length) {
+        if (index < 0 ||
+            index >= $scope.tableOfContents.length) {
           return false;
         }
         return true;

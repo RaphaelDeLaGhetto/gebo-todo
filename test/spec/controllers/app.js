@@ -77,6 +77,11 @@ describe('Controller: AppCtrl', function () {
 
         $httpBackend.when('GET', VERIFICATION_ENDPOINT +
                 '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
+ 
+//        $httpBackend.whenGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN).
+//                    respond([{ _id: '1', name: 'a new list' },
+//                             { _id: '2', name: 'another new list' }]);
+
 
         /**
          * PUTS with different DATA_TO_SAVE (cloned and modified)
@@ -93,7 +98,7 @@ describe('Controller: AppCtrl', function () {
         expectedUnsavedData.access_token = ACCESS_TOKEN;
 
         var savedData = angular.copy(expectedUnsavedData);
-        savedData.id = '1a2b3c';
+        savedData.id = '1';
 
         $httpBackend.whenPOST(SAVE_ENDPOINT, expectedUnsavedData).
                 respond(angular.copy(savedData));
@@ -127,8 +132,8 @@ describe('Controller: AppCtrl', function () {
         $httpBackend.verifyNoOutstandingRequest();
     });
 
-    it('should attach a todo list object to the scope', function () {
-        expect(scope.todoLists.length).toBe(0);
+    it('should attach a table of contents list to the scope', function () {
+        expect(scope.tableOfContents.length).toBe(0);
     });
 
     /**
@@ -136,37 +141,54 @@ describe('Controller: AppCtrl', function () {
      */
     describe('create', function() {
 
-        it('should add a new todo list to the list of todos', function() {
-            var data = angular.copy(DATA_TO_SAVE);
-            data.name = 'My new list';
+        var savedData;
 
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData);
+        beforeEach(function() {
+            savedData = angular.copy(expectedUnsavedData)
+            savedData._id = '1';
 
-            expect(scope.todoLists.length).toBe(0);
+            $httpBackend.whenGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN).
+                respond([{ _id: '1', name: expectedUnsavedData.name }]);
+        });
+
+        it('should add a new todo list to the todo associative array', function() {
+
+            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
+            $httpBackend.expectGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN);
+
+            expect(Object.keys(scope.todoLists).length).toBe(0);
 
             scope.name = 'My new list';
             scope.create(); 
 
             $httpBackend.flush();
+            expect(Object.keys(scope.todoLists).length).toBe(1);
+            expect(scope.tableOfContents.length).toBe(1);
 
             expect(scope.name).toBe('');
-            expect(scope.todoLists.length).toBe(1);
-            expect(scope.todoLists[0].id).toBe('1a2b3c');
-            expect(scope.todoLists[0].name).toBe('My new list');
-            expect(scope.todoLists[0].owner.name).toEqual(VERIFICATION_DATA.name);
-            expect(scope.todoLists[0].owner.email).toEqual(VERIFICATION_DATA.email);
-            expect(scope.todoLists[0].owner.id).toEqual(VERIFICATION_DATA.id);
-            expect(scope.todoLists[0].owner.scopes).toEqual(VERIFICATION_DATA.scopes);
+
+            expect(scope.tableOfContents.length).toBe(1);
+            var id = scope.tableOfContents[0]._id;
+
+            expect(Object.keys(scope.todoLists).length).toBe(1);
+            expect(scope.todoLists[id]._id).toBe('1');
+            expect(scope.todoLists[id].name).toBe('My new list');
+            expect(scope.todoLists[id].owner.name).toEqual(VERIFICATION_DATA.name);
+            expect(scope.todoLists[id].owner.email).toEqual(VERIFICATION_DATA.email);
+            expect(scope.todoLists[id].owner.id).toEqual(VERIFICATION_DATA.id);
+            expect(scope.todoLists[id].owner.scopes).toEqual(VERIFICATION_DATA.scopes);
 
             expect(localStorage.getItem).toHaveBeenCalled();
             expect(List.getNewObject).toHaveBeenCalled();
         });
 
         it('should not add a new todo list if no name is supplied', function() {
-            expect(scope.todoLists.length).toBe(0);
+            expect(Object.keys(scope.todoLists).length).toBe(0);
+            expect(scope.tableOfContents.length).toBe(0);
             scope.name = '';
             scope.create(); 
-            expect(scope.todoLists.length).toBe(0);
+            expect(Object.keys(scope.todoLists).length).toBe(0);
+            expect(scope.tableOfContents.length).toBe(0);
         });
     });
 
@@ -179,13 +201,17 @@ describe('Controller: AppCtrl', function () {
             savedData;
 
         beforeEach(function() {
+            $httpBackend.whenGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN).
+                    respond([{ _id: '1', name: 'a new list' },
+                             { _id: '2', name: 'another new list' }]);
+
             // For the first new list
             expectedData = angular.copy(DATA_TO_SAVE);
             expectedData.name = 'a new list';
             expectedData.access_token = ACCESS_TOKEN;
 
             savedData = angular.copy(expectedData)
-            savedData.id = 'abc';
+            savedData._id = '1';
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
 
             // For the second new list
@@ -193,7 +219,7 @@ describe('Controller: AppCtrl', function () {
             expectedData.name = 'another new list';
             expectedData.access_token = ACCESS_TOKEN;
             savedData = angular.copy(expectedData)
-            savedData.id = '123';
+            savedData._id = '2';
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
 
  
@@ -203,50 +229,82 @@ describe('Controller: AppCtrl', function () {
             scope.create(); 
   
             $httpBackend.flush();
-            expect(scope.todoLists.length).toBe(2);
-            expect(scope.todoLists[0].id).toBe('abc');
-            expect(scope.todoLists[1].id).toBe('123');
+            expect(Object.keys(scope.todoLists).length).toBe(2);
+            expect(scope.tableOfContents.length).toBe(2);
+
+            var id = scope.tableOfContents[0]._id;
+            expect(scope.todoLists[id]._id).toBe('1');
+            id = scope.tableOfContents[1]._id;
+            expect(scope.todoLists[id]._id).toBe('2');
         });
 
         it('should remove the todo list from the lists of todos', function() {
-            $httpBackend.expectDELETE(RM_DATA_ENDPOINT, savedData);
 
-            expect(scope.todoLists.length).toBe(2);
+            expect(Object.keys(scope.todoLists).length).toBe(2);
+            expect(scope.tableOfContents.length).toBe(2);
 
+            $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=1&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(0);
-
             $httpBackend.flush();
-            expect(scope.todoLists.length).toBe(1);
+
+            expect(Object.keys(scope.todoLists).length).toBe(1);
+            expect(scope.tableOfContents.length).toBe(1);
+
+            $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=2&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(0);
-            expect(scope.todoLists.length).toBe(0);
+            $httpBackend.flush();
+
+            expect(Object.keys(scope.todoLists).length).toBe(0);
+            expect(scope.tableOfContents.length).toBe(0);
         });
 
         it('should not barf if removing a todo list from an empty list', function() {
-            expect(scope.todoLists.length).toBe(2);
+            expect(Object.keys(scope.todoLists).length).toBe(2);
+            expect(scope.tableOfContents.length).toBe(2);
+
+            $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=2&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(1);
-            expect(scope.todoLists.length).toBe(1);
+            $httpBackend.flush();
+
+            expect(Object.keys(scope.todoLists).length).toBe(1);
+            expect(scope.tableOfContents.length).toBe(1);
+
+            $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=1&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(0);
-            expect(scope.todoLists.length).toBe(0);
+            $httpBackend.flush();
+
+            expect(Object.keys(scope.todoLists).length).toBe(0);
+            expect(scope.tableOfContents.length).toBe(0);
             scope.rm(0);
-            expect(scope.todoLists.length).toBe(0);
+            expect(Object.keys(scope.todoLists).length).toBe(0);
+            expect(scope.tableOfContents.length).toBe(0);
         });
 
         it('should not be bothered by out-of-bound indicies', function() {
+            savedData = angular.copy(expectedData)
+            savedData._id = '3';
+            savedData.name = 'another new list';
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
 
-            expect(scope.todoLists.length).toBe(2);
+            expect(Object.keys(scope.todoLists).length).toBe(2);
+            expect(scope.tableOfContents.length).toBe(2);
+
             scope.name = 'another new list';
             scope.create();
-
             $httpBackend.flush();
-            expect(scope.todoLists.length).toBe(3);
+
+            expect(Object.keys(scope.todoLists).length).toBe(3);
+            expect(scope.tableOfContents.length).toBe(3);
 
             scope.rm(2);
-            expect(scope.todoLists.length).toBe(2);
+            expect(Object.keys(scope.todoLists).length).toBe(2);
+            expect(scope.tableOfContents.length).toBe(2);
             scope.rm(-1);
-            expect(scope.todoLists.length).toBe(2);
+            expect(Object.keys(scope.todoLists).length).toBe(2);
+            expect(scope.tableOfContents.length).toBe(2);
             scope.rm(0);
-            expect(scope.todoLists.length).toBe(1);
+            expect(Object.keys(scope.todoLists).length).toBe(1);
+            expect(scope.tableOfContents.length).toBe(1);
         });
     });
 
@@ -260,8 +318,8 @@ describe('Controller: AppCtrl', function () {
 
         beforeEach(function() {
             $httpBackend.whenGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN).
-                    respond([{ _id: '1', name: 'doc 1'},
-                             { _id: '2', name: 'doc 2'}]);
+                    respond([{ _id: '1', name: 'a new list' },
+                             { _id: '2', name: 'another new list' }]);
 
             // For the first new list
             expectedData = angular.copy(DATA_TO_SAVE);
@@ -269,7 +327,7 @@ describe('Controller: AppCtrl', function () {
             expectedData.access_token = ACCESS_TOKEN;
 
             savedData = angular.copy(expectedData)
-            savedData.id = 'abc';
+            savedData._id = '1';
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
 
             // For the second new list
@@ -277,7 +335,7 @@ describe('Controller: AppCtrl', function () {
             expectedData.name = 'another new list';
             expectedData.access_token = ACCESS_TOKEN;
             savedData = angular.copy(expectedData)
-            savedData.id = '123';
+            savedData._id = '2';
             $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
 
             scope.name = 'a new list';
@@ -288,13 +346,11 @@ describe('Controller: AppCtrl', function () {
             $httpBackend.flush();
             expect(scope.todoLists.length).toBe(2);
 
-            expect(scope.todoLists[0].todos.length).toBe(0);
             expect(scope.todoLists[0].name).toBe('a new list');
-            expect(scope.todoLists[0].id).toBe('abc');
+            expect(scope.todoLists[0]._id).toBe('1');
 
-            expect(scope.todoLists[1].todos.length).toBe(0);
             expect(scope.todoLists[1].name).toBe('another new list');
-            expect(scope.todoLists[1].id).toBe('123');
+            expect(scope.todoLists[1]._id).toBe('2');
          });
 
         /**
@@ -728,11 +784,11 @@ describe('Controller: AppCtrl', function () {
      * init
      */
     describe('init', function() {
-        beforeEach(function() {
-            $httpBackend.whenGET(LS_DATA_ENDPOINT +
-                    '?access_token=' + ACCESS_TOKEN).
-                    respond([VERIFICATION_DATA, VERIFICATION_DATA]);
-        });
+//        beforeEach(function() {
+//            $httpBackend.whenGET(LS_DATA_ENDPOINT +
+//                    '?access_token=' + ACCESS_TOKEN).
+//                    respond([VERIFICATION_DATA, VERIFICATION_DATA]);
+//        });
 
         it('should list the app\'s documents', function() {
             $httpBackend.expectGET(LS_DATA_ENDPOINT +
@@ -744,16 +800,16 @@ describe('Controller: AppCtrl', function () {
 
             $httpBackend.flush();
             
-            expect(scope.todoLists.length).toBe(2);
-            expect(scope.todoLists[0].id).toBe('1');
-            expect(scope.todoLists[0].name).toBe('dan');
-            expect(scope.todoLists[0].email).toBe('dan@email.com');
-            expect(scope.todoLists[0].scope).toEqual(['*']);
+            expect(scope.tableOfContents.length).toBe(2);
+            expect(scope.tableOfContents[0]._id).toBe('1');
+            expect(scope.tableOfContents[0].name).toBe('a new list');
+//            expect(scope.tableOfContents[0].email).toBe('dan@email.com');
+//            expect(scope.tableOfContents[0].scope).toEqual(['*']);
 
-            expect(scope.todoLists[1].id).toBe('1');
-            expect(scope.todoLists[1].name).toBe('dan');
-            expect(scope.todoLists[1].email).toBe('dan@email.com');
-            expect(scope.todoLists[1].scope).toEqual(['*']);
+            expect(scope.tableOfContents[1]._id).toBe('2');
+            expect(scope.tableOfContents[1].name).toBe('another new list');
+//            expect(scope.tableOfContents[1].email).toBe('dan@email.com');
+//            expect(scope.tableOfContents[1].scope).toEqual(['*']);
 
         });
 
