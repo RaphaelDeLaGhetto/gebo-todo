@@ -48,11 +48,7 @@ angular.module('geboClientApp')
         }
         var removeId = $scope.tableOfContents[index]._id;
         Token.rm(removeId).then(function(res) {
-            console.log('BEFORE');
-            console.log($scope.tableOfContents);
             $scope.tableOfContents.splice(index, 1);
-            console.log('AFTER');
-            console.log($scope.tableOfContents);
             delete $scope.todoLists[removeId];
           });
       };
