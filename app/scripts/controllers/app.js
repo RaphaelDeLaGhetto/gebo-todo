@@ -44,6 +44,7 @@ angular.module('geboClientApp')
         if (!_inRange(index)) {
           return;
         }
+
         console.log('cp ' + index);
         var copyId = $scope.tableOfContents[index]._id;
         Token.cp(copyId).then(function(copiedList) {

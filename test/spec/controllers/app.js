@@ -203,11 +203,12 @@ describe('Controller: AppCtrl', function () {
                     '?access_token=' + ACCESS_TOKEN + '&id=1').
                 respond(VERIFICATION_DATA);
  
+            scope.tableOfContents = [ { _id: '1', name: 'word to your mom'} ];
         });
 
         it('should copy a todo list from the server to the client', function() {
             $httpBackend.expectGET(CP_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN + '&id=1');
-            scope.cp('1');
+            scope.cp(0);
             $httpBackend.flush();
 
             expect(scope.todoLists['1'].id).toBe('1');
