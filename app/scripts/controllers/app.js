@@ -49,9 +49,8 @@ angular.module('geboClientApp')
         console.log('cp ' + index);
         var copyId = $scope.tableOfContents[index]._id;
         Token.cp(copyId).then(function(copiedList) {
-            $scope.todoLists[copyId] = copiedList;
+            $scope.todoLists[copyId] = List.restoreObject(copiedList);
             console.log('cp ------------------');
-//            console.log(Object.create(data, List));
             console.log($scope.todoLists[copyId]);
           });
       };
@@ -83,13 +82,12 @@ angular.module('geboClientApp')
           return;
         }
         var id = $scope.tableOfContents[index]._id;
-//        console.log('addTodo -------------------------');
-//        console.log($scope.tableOfContents[index]);
-//        console.log(id);
-//        console.log($scope.todoLists);
         $scope.todoLists[id].add($scope.todoDescription, Token.data());
-        //console.log($scope.todoLists[id]);
-        $scope.todoDescription = '';
+        console.log($scope.todoLists[id]);
+
+        Token.save($scope.todoLists[id]).then(function(savedList) {
+            $scope.todoDescription = '';
+          });
       };
 
     /**

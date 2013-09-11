@@ -217,7 +217,6 @@ angular.module('geboClientApp')
             this.notes[index].unstrike();
           };
 
-
         /**
          * Set the date this todo was completed
          */

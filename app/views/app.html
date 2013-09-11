@@ -14,8 +14,10 @@
             <form ng-submit="addTodo($index)">
                 <input type="text" ng-model="$parent.todoDescription"
                     size=30 placeholder="My new todo" />
-    
                 <input class="btn-primary" type="submit" value="add" />
+                <ol>
+                    <li ng-repeat="todo in list.todos">{{todo.description}}</li>
+                </ol>
             </form>
     
             <div ui-view></div>

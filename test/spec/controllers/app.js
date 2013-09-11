@@ -215,6 +215,8 @@ describe('Controller: AppCtrl', function () {
             expect(scope.todoLists['1'].name).toBe('dan');
             expect(scope.todoLists['1'].email).toBe('dan@email.com');
             expect(scope.todoLists['1'].scope).toEqual(['*']);
+            expect(scope.todoLists['1'].watchers).toEqual([]);
+            expect(scope.todoLists['1'].todos).toEqual([]);
         });
     });
 
@@ -831,9 +833,17 @@ describe('Controller: AppCtrl', function () {
                 expect(Object.keys(scope.todoLists).length).toBe(2);
     
                 scope.todoDescription = 'Do this first';
+
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
                 scope.addTodo(0);
+                $httpBackend.flush();
+
                 scope.todoDescription = 'Do this next';
+
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
                 scope.addTodo(0);
+                $httpBackend.flush();
+
                 var id = scope.tableOfContents[0]._id;
                 expect(scope.todoLists[id].todos.length).toBe(2);
     
