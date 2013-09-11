@@ -30,6 +30,7 @@ angular.module('geboClientApp')
         }
         var list = List.getNewObject($scope.name, Token.data());
 
+//        console.log(list);
         Token.save(list).then(function(savedList) {
             $scope.todoLists[savedList._id] = savedList;
             $scope.name = '';
@@ -49,7 +50,9 @@ angular.module('geboClientApp')
         var copyId = $scope.tableOfContents[index]._id;
         Token.cp(copyId).then(function(copiedList) {
             $scope.todoLists[copyId] = copiedList;
-//            console.log($scope.todoLists[copyId]);
+            console.log('cp ------------------');
+//            console.log(Object.create(data, List));
+            console.log($scope.todoLists[copyId]);
           });
       };
 
@@ -80,6 +83,10 @@ angular.module('geboClientApp')
           return;
         }
         var id = $scope.tableOfContents[index]._id;
+//        console.log('addTodo -------------------------');
+//        console.log($scope.tableOfContents[index]);
+//        console.log(id);
+//        console.log($scope.todoLists);
         $scope.todoLists[id].add($scope.todoDescription, Token.data());
         //console.log($scope.todoLists[id]);
         $scope.todoDescription = '';

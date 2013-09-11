@@ -30,11 +30,18 @@ describe('Service: List', function () {
 
     var LIST_NAME = 'Things todo',
         DESCRIPTION = 'A new thing todo',
-        TODO = {
-            description: DESCRIPTION,
+        TODO_DATA = {
+            description: 'Something new todo',
             owner: OWNER,
+        },
+        TODO_LIST_DATA = {
+            _id: 'someMongoId123',
+            date: 'Today',
+            'name': 'Things todo',
+            owner: OWNER,
+            watchers: [WATCHER],
+            todos: [TODO_DATA],
         };
-
 
     // load the service's module
     beforeEach(module('geboClientApp'));
@@ -97,6 +104,35 @@ describe('Service: List', function () {
             expect(list.owner).toBe(OWNER);
             expect(list.date).toBeCloseTo(new Date());
             expect(list.watchers).toEqual([]);
+        });
+    });
+
+    /**
+     * restoreObject
+     */
+    describe('restoreObject', function() {
+        it('should return a fully funcitonal List object', function() {
+            var newObject = List.restoreObject(TODO_LIST_DATA);           
+            expect(newObject._id).toBe('someMongoId123');
+            expect(newObject.date).toBe('Today');
+            expect(newObject.name).toBe('Things todo');
+            expect(newObject.owner.id).toBe('1');
+            expect(newObject.owner.name).toBe('dan');
+            expect(newObject.owner.email).toBe('dan@email.com');
+            expect(newObject.owner.scope).toEqual(['*']);
+            expect(newObject.todos).toEqual([TODO_DATA]);
+            expect(newObject.todos[0].description).toBe('Something new todo');
+            expect(newObject.todos[0].owner.id).toBe('1');
+            expect(newObject.todos[0].owner.name).toBe('dan');
+            expect(newObject.watchers).toEqual([WATCHER]);
+            expect(newObject.watchers[0].id).toBe('2');
+            expect(newObject.watchers[0].name).toBe('yanfen');
+            
+            newObject.add(TODO_DATA.description, TODO_DATA.owner);
+            expect(newObject.todos.length).toBe(2);
+            expect(newObject.todos[1].description).toBe('Something new todo');
+            expect(newObject.todos[1].owner.id).toBe('1');
+            expect(newObject.todos[1].owner.name).toBe('dan');
         });
     });
 

@@ -294,5 +294,10 @@ angular.module('geboClientApp')
       getNewObject: function(description, owner) {
               return new List(description, owner);
             },
+      restoreObject: function(properties) {
+              var list = new List(null, null);
+              angular.extend(list, properties);
+              return list;
+            },
     };
   });
