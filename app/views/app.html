@@ -7,7 +7,7 @@
     </form>
     <tabset class="tabs-left">
         <tab ng-repeat="list in tableOfContents">
-        <tab-heading>
+        <tab-heading ng-click="cp($index)">
              <i class="icon-minus-sign pull-right" ng-click="rm($index)"></i> {{list.name}}
         </tab-heading>
             <p>Owner: {{list.owner.name}}  </p>

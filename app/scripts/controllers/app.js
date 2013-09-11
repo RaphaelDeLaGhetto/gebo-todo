@@ -40,9 +40,15 @@ angular.module('geboClientApp')
     /**
      * Copy a todo list from the server
      */
-    $scope.cp = function(id) {
-        Token.cp(id).then(function(copiedList) {
-            $scope.todoLists[id] = copiedList;
+    $scope.cp = function(index) {
+        if (!_inRange(index)) {
+          return;
+        }
+        console.log('cp ' + index);
+        var copyId = $scope.tableOfContents[index]._id;
+        Token.cp(copyId).then(function(copiedList) {
+            $scope.todoLists[copyId] = copiedList;
+//            console.log($scope.todoLists[copyId]);
           });
       };
 
@@ -74,6 +80,7 @@ angular.module('geboClientApp')
         }
         var id = $scope.tableOfContents[index]._id;
         $scope.todoLists[id].add($scope.todoDescription, Token.data());
+        //console.log($scope.todoLists[id]);
         $scope.todoDescription = '';
       };
 

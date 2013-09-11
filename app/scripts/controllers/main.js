@@ -31,7 +31,9 @@ angular.module('geboClientApp')
       lsDataEndpoint: 'http://localhost:3000\\:3000/api/ls',
 //      rmDataEndpoint: 'http://192.168.1.25:3000\\:3000/api/rm',
       rmDataEndpoint: 'http://localhost:3000/api/rm',
-       localStorageName: 'gebo-token',
+//      cpDataEndpoint: 'http://192.168.1.25:3000\\:3000/api/cp',
+      cpDataEndpoint: 'http://localhost:3000\\:3000/api/cp',
+      localStorageName: 'gebo-token',
     });
 
     /**
