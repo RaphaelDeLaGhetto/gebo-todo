@@ -337,15 +337,15 @@ describe('Service: Token', function () {
     
             beforeEach(function() {
                 $httpBackend.whenGET(CP_DATA_ENDPOINT +
-                        '?access_token=' + ACCESS_TOKEN + '&doc=some_doc').
+                        '?access_token=' + ACCESS_TOKEN + '&id=1').
                         respond(VERIFICATION_DATA);
             });
     
             it('should GET the requested document from the collection', function() {
                  $httpBackend.expectGET(CP_DATA_ENDPOINT +
-                        '?access_token=' + ACCESS_TOKEN + '&doc=some_doc');
+                        '?access_token=' + ACCESS_TOKEN + '&id=1');
     
-                 var deferred = token.cp('some_doc');
+                 var deferred = token.cp('1');
     
                  var _doc;
                  deferred.then(function(doc) {

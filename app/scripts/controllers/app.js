@@ -38,6 +38,15 @@ angular.module('geboClientApp')
       };
 
     /**
+     * Copy a todo list from the server
+     */
+    $scope.cp = function(id) {
+        Token.cp(id).then(function(copiedList) {
+            $scope.todoLists[id] = copiedList;
+          });
+      };
+
+    /**
      * Remove a todo list
      *
      * @param index

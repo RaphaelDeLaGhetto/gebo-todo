@@ -8,6 +8,7 @@ describe('Controller: AppCtrl', function () {
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
         SAVE_ENDPOINT = 'http://theirhost.com/api/save',
         LS_DATA_ENDPOINT = 'http://theirhost.com/api/ls',
+        CP_DATA_ENDPOINT = 'http://theirhost.com/api/cp',
         RM_DATA_ENDPOINT = 'http://theirhost.com/api/rm',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
@@ -55,6 +56,7 @@ describe('Controller: AppCtrl', function () {
           verificationEndpoint: VERIFICATION_ENDPOINT,
           saveEndpoint: SAVE_ENDPOINT,
           lsDataEndpoint: LS_DATA_ENDPOINT,
+          cpDataEndpoint: CP_DATA_ENDPOINT,
           rmDataEndpoint: RM_DATA_ENDPOINT,
           localStorageName: 'accessToken',
           scopes: SCOPES
@@ -189,6 +191,29 @@ describe('Controller: AppCtrl', function () {
             scope.create(); 
             expect(Object.keys(scope.todoLists).length).toBe(0);
             expect(scope.tableOfContents.length).toBe(0);
+        });
+    });
+
+    /**
+     * cp
+     */
+    describe('cp', function() {
+        beforeEach(function() {
+            $httpBackend.whenGET(CP_DATA_ENDPOINT +
+                    '?access_token=' + ACCESS_TOKEN + '&id=1').
+                respond(VERIFICATION_DATA);
+ 
+        });
+
+        it('should copy a todo list from the server to the client', function() {
+            $httpBackend.expectGET(CP_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN + '&id=1');
+            scope.cp('1');
+            $httpBackend.flush();
+
+            expect(scope.todoLists['1'].id).toBe('1');
+            expect(scope.todoLists['1'].name).toBe('dan');
+            expect(scope.todoLists['1'].email).toBe('dan@email.com');
+            expect(scope.todoLists['1'].scope).toEqual(['*']);
         });
     });
 

@@ -311,12 +311,12 @@ angular.module('geboClientApp')
      *
      * @param string
      */
-    var _cp = function(docName) {
+    var _cp = function(id) {
         var deferred = $q.defer();
 
         var Cp = $resource(_config.cpDataEndpoint,
                         { access_token: _get(),
-                          doc: docName});
+                          id: id });
 
         Cp.get(function(data) {
             deferred.resolve(data);
