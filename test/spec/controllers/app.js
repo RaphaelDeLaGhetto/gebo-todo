@@ -348,8 +348,10 @@ describe('Controller: AppCtrl', function () {
      */
     describe('CRUDdy List operations', function() {
 
-        var expectedData, 
-            savedData;
+        var expectedData1, 
+            expectedData2, 
+            savedData1,
+            savedData2;
 
         beforeEach(function() {
             $httpBackend.whenGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN).
@@ -357,21 +359,21 @@ describe('Controller: AppCtrl', function () {
                              { _id: '2', name: 'another new list' }]);
 
             // For the first new list
-            expectedData = angular.copy(DATA_TO_SAVE);
-            expectedData.name = 'a new list';
-            expectedData.access_token = ACCESS_TOKEN;
+            expectedData1 = angular.copy(DATA_TO_SAVE);
+            expectedData1.name = 'a new list';
+            expectedData1.access_token = ACCESS_TOKEN;
 
-            savedData = angular.copy(expectedData)
-            savedData._id = '1';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
+            savedData1 = angular.copy(expectedData1)
+            savedData1._id = '1';
+            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1);
 
             // For the second new list
-            expectedData = angular.copy(DATA_TO_SAVE);
-            expectedData.name = 'another new list';
-            expectedData.access_token = ACCESS_TOKEN;
-            savedData = angular.copy(expectedData)
-            savedData._id = '2';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
+            expectedData2 = angular.copy(DATA_TO_SAVE);
+            expectedData2.name = 'another new list';
+            expectedData2.access_token = ACCESS_TOKEN;
+            savedData2 = angular.copy(expectedData2)
+            savedData2._id = '2';
+            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2);
 
             scope.name = 'a new list';
             scope.create(); 
@@ -396,25 +398,55 @@ describe('Controller: AppCtrl', function () {
          */
         describe('addTodo', function() {
     
-           it('should add a todo to the given list', function() {
+            beforeEach(function() {
+                // Reuse the expected data from the beforeEach
+                expectedData1.todos = scope.todoLists['1'].todos;
+                expectedData1._id = '1';
+
+                expectedData2.todos = scope.todoLists['2'].todos;
+                expectedData2._id = '2';
+ 
+                // Add todos to the first list
+                $httpBackend.whenPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1);
+   
+                // Add todos to the second list
+                $httpBackend.whenPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2);
+             });
+
+            it('should add a todo to the given list', function() {
+   
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(0);
+                $httpBackend.flush();
+
                 expect(scope.todoDescription).toBe('');
 
                 var id = scope.tableOfContents[0]._id;
                 expect(scope.todoLists[id].todos.length).toBe(1);
                 expect(scope.todoLists[id].todos[0].description).toBe('Do this first');
                 expect(scope.todoLists[id].todos[0].owner).toEqual(VERIFICATION_DATA);
+
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1);
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(0);
+                $httpBackend.flush();
+
                 expect(scope.todoDescription).toBe('');
                 expect(scope.todoLists[id].todos.length).toBe(2);
     
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(1);
+                $httpBackend.flush();
+
                 expect(scope.todoDescription).toBe('');
+
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2);
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(1);
+                $httpBackend.flush();
+
                 expect(scope.todoDescription).toBe('');
 
                 id = scope.tableOfContents[1]._id;
@@ -430,455 +462,335 @@ describe('Controller: AppCtrl', function () {
          });
     
         /**
-         * destroyTodo
+         * Todo operations
          */
-        describe('destroyTodo', function() {
-    
+        describe('Todo operations', function() {
+
+            /**
+             * Add some todos to work on
+             */
             beforeEach(function() {
                 expect(Object.keys(scope.todoLists).length).toBe(2);
+        
     
+                // Reuse the expected data from the beforeEach
+                expectedData1.todos = scope.todoLists['1'].todos;
+                expectedData1._id = '1';
+    
+                // Add todos to the first list
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(0);
+                $httpBackend.flush();
+    
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1);
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(0);
-
+                $httpBackend.flush();
+    
                 var id = scope.tableOfContents[0]._id;
                 expect(scope.todoLists[id].todos.length).toBe(2);
+        
+                // Reuse the expected data from the beforeEach
+                expectedData2.todos = scope.todoLists['2'].todos;
+                expectedData2._id = '2';
     
+                // Add todos to the second list
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
+                $httpBackend.flush();
     
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-                expect(scope.tableOfContents.length).toBe(2);
-
+                scope.todoDescription = 'Do this next';
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2);
+                scope.addTodo(1);
+                $httpBackend.flush();
+    
                 id = scope.tableOfContents[1]._id;
                 expect(scope.todoLists[id].todos.length).toBe(2);
-            });
-    
-    
-            it('should remove a todo from the given list', function() {
-                scope.destroyTodo(0, 1);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(1);
-                scope.destroyTodo(0, 0);
-                expect(scope.todoLists[id].todos.length).toBe(0);
-
-                id = scope.tableOfContents[1]._id;
-                scope.destroyTodo(1, 1);
-                expect(scope.todoLists[id].todos.length).toBe(1);
-                scope.destroyTodo(1, 0);
-                expect(scope.todoLists[id].todos.length).toBe(0);
-            });
-    
-            it('should not be bothered by out-of-range indicies', function() {
-                scope.destroyTodo(0, 3);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[3]).toBe(undefined);
-                scope.destroyTodo(1, -1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[-1]).toBe(undefined);
-             });
-         });
-    
-        /**
-         * completeTodo
-         */
-        describe('completeTodo', function() {
-            beforeEach(function() {
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(0);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-            });
-    
-            it('should mark a todo as completed on the given list', function() {
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[0].completed).toBe(null);
-                expect(scope.todoLists[id].todos[0].abandoned).toBe(null);
-                scope.completeTodo(0, 0);
-                expect(scope.todoLists[id].todos[0].completed).toBeCloseTo(new Date());
-                expect(scope.todoLists[id].todos[0].abandoned).toBe(null);
-            });
-        });
-    
-        /**
-         * abandonTodo
-         */
-        describe('abandonTodo', function() {
-    
-            beforeEach(function() {
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(0);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-            });
-    
-            it('should mark a todo as abandoned on the given list', function() {
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[1].abandoned).toBe(null);
-                scope.abandonTodo(1, 1);
-                expect(scope.todoLists[id].todos[1].abandoned).toBeCloseTo(new Date());
-            });
-    
-            it('should not be bothered by out-of-bound indicies', function() {
-                scope.abandonTodo(1, 2);
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[2]).toBe(undefined);
-
-                scope.abandonTodo(1, -1);
-                expect(scope.todoLists[id].todos[-1]).toBe(undefined);
-
-                expect(scope.abandonTodo(2, 2)).toBeUndefined();
-
-                // Left here as a reminder:
-                //
-                // The 2 key is treated the same as '2'. That's
-                // why that seen below is not undefined (to be clear, 
-                // tableOfContents[2] is still undefined, which is why
-                // the 2 was used as an index and not the id.
-                //
-                // id = scope.tableOfContents[2]._id;
-                // expect(scope.todoLists[2]).toBe(undefined);
-              });
-         });
-    
-        /**
-         * reopenTodo
-         */
-        describe('reopenTodo', function() {
-            beforeEach(function() {
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(0);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-            });
-    
-            it('should nullify a todo\'s completed status', function() {
-                scope.completeTodo(0, 1);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[1].completed).toBeCloseTo(new Date());
-                scope.reopenTodo(0, 1);
-                expect(scope.todoLists[id].todos[1].completed).toBe(null);
-            });
-    
-            it('should nullify a todo\'s abandoned status', function() {
-                scope.abandonTodo(0, 1);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[1].abandoned).toBeCloseTo(new Date());
-                scope.reopenTodo(0, 1);
-                expect(scope.todoLists[id].todos[1].abandoned).toBe(null);
-            });
-         });
-    
-    
-        /**
-         * makeNote
-         */
-        describe('makeNote', function() {
-            beforeEach(function() {
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(0);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-            });
-    
-            it('should attach a note to a todo', function() {
-                expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
-                scope.makeNote(1, 1, 'Should I push this back?');
-    
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[1].notes.length).toBe(1);
-                expect(scope.todoLists[id].todos[1].notes[0].content).toBe(
-                        'Should I push this back?');
-                expect(scope.todoLists[id].todos[1].notes[0].date).toBeCloseTo(new Date());
-                expect(scope.todoLists[id].todos[1].notes[0].owner).toEqual(VERIFICATION_DATA);
-                expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(true);
-            });
-        });
-    
-        /**
-         * destroyNote
-         */
-        describe('destroyNote', function() {
-            beforeEach(function() {
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(0);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-    
-                expect(scope.todoLists[id].todos[1].notes.length).toBe(0);
-                scope.makeNote(1, 1, 'Should I push this back?');
-                expect(scope.todoLists[id].todos[1].notes.length).toBe(1);
-            });
-    
-            it('should remove a note from a todo', function() {
-                scope.destroyNote(1, 1);
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[1].notes.length).toBe(0);
-            });
-    
-            it('should ignore out-of-bound indices', function() {
-                scope.destroyNote(1, 2);
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[2]).toBe(undefined);
-                scope.destroyNote(1, -1);
-                expect(scope.todoLists[id].todos[-1]).toBe(undefined);
-
-                expect(scope.destroyNote(2, 0)).toBe(undefined);
-            });
-         });
-    
-        /**
-         * strikeNote
-         */
-        describe('strikeNote', function() {
-            beforeEach(function() {
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(0);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-    
-                expect(scope.todoLists[id].todos[1].notes.length).toBe(0);
-                scope.makeNote(1, 1, 'Should I push this back?');
-                expect(scope.todoLists[id].todos[1].notes.length).toBe(1);
-            });
-    
-            it('should mark a note as relevant===false', function() {
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(true);
-                scope.strikeNote(1, 1, 0);
-                expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(false);
-            });
-    
-            it('should ignore out-of-bound indices', function() {
-                scope.strikeNote(1, 1, 1);
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[1].notes[1]).toBe(undefined);
-                scope.strikeNote(1, 1, -1);
-                expect(scope.todoLists[id].todos[1].notes[-1]).toBe(undefined);
-                scope.strikeNote(1, 2, 0);
-                expect(scope.todoLists[id].todos[2]).toBe(undefined);
-                scope.strikeNote(1, -1, 0);
-                expect(scope.todoLists[id].todos[-1]).toBe(undefined);
-
-                expect(scope.strikeNote(2, 0, 0)).toBe(undefined);
-                expect(scope.strikeNote(-1, 0, 0)).toBe(undefined);
-            });
-        });
-    
-        /**
-         * unstrikeNote
-         */
-        describe('unstrikeNote', function() {
-            beforeEach(function() {
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(0);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-    
-                expect(scope.todoLists[id].todos[1].notes.length).toBe(0);
-                scope.makeNote(1, 1, 'Should I push this back?');
-                expect(scope.todoLists[id].todos[1].notes.length).toBe(1);
-            });
-    
-            it('should mark a note as relevant===true', function() {
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(true);
-                scope.strikeNote(1, 1, 0);
-                expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(false);
-                scope.unstrikeNote(1, 1, 0);
-                expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(true);
-            });
-    
-            it('should ignore out-of-bound indices', function() {
-                scope.unstrikeNote(1, 1, 1);
-                var id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos[1].notes[1]).toBe(undefined);
-                scope.unstrikeNote(1, 1, -1);
-                expect(scope.todoLists[id].todos[1].notes[-1]).toBe(undefined);
-                scope.unstrikeNote(1, 2, 0);
-                expect(scope.todoLists[id].todos[2]).toBe(undefined);
-                scope.unstrikeNote(1, -1, 0);
-                expect(scope.todoLists[id].todos[-1]).toBe(undefined);
-
-                expect(scope.unstrikeNote(2, 0, 0)).toBe(undefined);
-                expect(scope.unstrikeNote(-1, 0, 0)).toBe(undefined);
+        
            });
+
+            /**
+             * destroyTodo
+             */
+            describe('destroyTodo', function() {
+
+                it('should remove a todo from the given list', function() {
+                    scope.destroyTodo(0, 1);
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos.length).toBe(1);
+                    scope.destroyTodo(0, 0);
+                    expect(scope.todoLists[id].todos.length).toBe(0);
+    
+                    id = scope.tableOfContents[1]._id;
+                    scope.destroyTodo(1, 1);
+                    expect(scope.todoLists[id].todos.length).toBe(1);
+                    scope.destroyTodo(1, 0);
+                    expect(scope.todoLists[id].todos.length).toBe(0);
+                });
+        
+                it('should not be bothered by out-of-range indicies', function() {
+                    scope.destroyTodo(0, 3);
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[3]).toBe(undefined);
+                    scope.destroyTodo(1, -1);
+                    id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[-1]).toBe(undefined);
+                 });
+             });
+        
+            /**
+             * completeTodo
+             */
+            describe('completeTodo', function() {
+       
+                it('should mark a todo as completed on the given list', function() {
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[0].completed).toBe(null);
+                    expect(scope.todoLists[id].todos[0].abandoned).toBe(null);
+                    scope.completeTodo(0, 0);
+                    expect(scope.todoLists[id].todos[0].completed).toBeCloseTo(new Date());
+                    expect(scope.todoLists[id].todos[0].abandoned).toBe(null);
+                });
+            });
+        
+            /**
+             * abandonTodo
+             */
+            describe('abandonTodo', function() {
+        
+                it('should mark a todo as abandoned on the given list', function() {
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[1].abandoned).toBe(null);
+                    scope.abandonTodo(1, 1);
+                    expect(scope.todoLists[id].todos[1].abandoned).toBeCloseTo(new Date());
+                });
+        
+                it('should not be bothered by out-of-bound indicies', function() {
+                    scope.abandonTodo(1, 2);
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[2]).toBe(undefined);
+    
+                    scope.abandonTodo(1, -1);
+                    expect(scope.todoLists[id].todos[-1]).toBe(undefined);
+    
+                    expect(scope.abandonTodo(2, 2)).toBeUndefined();
+    
+                    // Left here as a reminder:
+                    //
+                    // The 2 key is treated the same as '2'. That's
+                    // why that seen below is not undefined (to be clear, 
+                    // tableOfContents[2] is still undefined, which is why
+                    // the 2 was used as an index and not the id.
+                    //
+                    // id = scope.tableOfContents[2]._id;
+                    // expect(scope.todoLists[2]).toBe(undefined);
+                  });
+             });
+        
+            /**
+             * reopenTodo
+             */
+            describe('reopenTodo', function() {
+       
+                it('should nullify a todo\'s completed status', function() {
+                    scope.completeTodo(0, 1);
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[1].completed).toBeCloseTo(new Date());
+                    scope.reopenTodo(0, 1);
+                    expect(scope.todoLists[id].todos[1].completed).toBe(null);
+                });
+        
+                it('should nullify a todo\'s abandoned status', function() {
+                    scope.abandonTodo(0, 1);
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[1].abandoned).toBeCloseTo(new Date());
+                    scope.reopenTodo(0, 1);
+                    expect(scope.todoLists[id].todos[1].abandoned).toBe(null);
+                });
+             });
+        
+        
+            /**
+             * makeNote
+             */
+            describe('makeNote', function() {
+
+                it('should attach a note to a todo', function() {
+                    expect(scope.todoLists[1].todos[1].notes.length).toBe(0);
+                    scope.makeNote(1, 1, 'Should I push this back?');
+        
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[1].notes.length).toBe(1);
+                    expect(scope.todoLists[id].todos[1].notes[0].content).toBe(
+                            'Should I push this back?');
+                    expect(scope.todoLists[id].todos[1].notes[0].date).toBeCloseTo(new Date());
+                    expect(scope.todoLists[id].todos[1].notes[0].owner).toEqual(VERIFICATION_DATA);
+                    expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(true);
+                });
+            });
+        
+            /**
+             * destroyNote
+             */
+            describe('destroyNote', function() {
+                beforeEach(function() {
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos.length).toBe(2);
+        
+                    expect(scope.todoLists[id].todos[1].notes.length).toBe(0);
+                    scope.makeNote(1, 1, 'Should I push this back?');
+                    expect(scope.todoLists[id].todos[1].notes.length).toBe(1);
+                });
+        
+                it('should remove a note from a todo', function() {
+                    scope.destroyNote(1, 1);
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[1].notes.length).toBe(0);
+                });
+        
+                it('should ignore out-of-bound indices', function() {
+                    scope.destroyNote(1, 2);
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[2]).toBe(undefined);
+                    scope.destroyNote(1, -1);
+                    expect(scope.todoLists[id].todos[-1]).toBe(undefined);
+    
+                    expect(scope.destroyNote(2, 0)).toBe(undefined);
+                });
+             });
+        
+            /**
+             * strikeNote
+             */
+            describe('strikeNote', function() {
+                beforeEach(function() {
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos.length).toBe(2);
+                    expect(scope.todoLists[id].todos[1].notes.length).toBe(0);
+                    scope.makeNote(1, 1, 'Should I push this back?');
+                    expect(scope.todoLists[id].todos[1].notes.length).toBe(1);
+                });
+        
+                it('should mark a note as relevant===false', function() {
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(true);
+                    scope.strikeNote(1, 1, 0);
+                    expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(false);
+                });
+        
+                it('should ignore out-of-bound indices', function() {
+                    scope.strikeNote(1, 1, 1);
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[1].notes[1]).toBe(undefined);
+                    scope.strikeNote(1, 1, -1);
+                    expect(scope.todoLists[id].todos[1].notes[-1]).toBe(undefined);
+                    scope.strikeNote(1, 2, 0);
+                    expect(scope.todoLists[id].todos[2]).toBe(undefined);
+                    scope.strikeNote(1, -1, 0);
+                    expect(scope.todoLists[id].todos[-1]).toBe(undefined);
+    
+                    expect(scope.strikeNote(2, 0, 0)).toBe(undefined);
+                    expect(scope.strikeNote(-1, 0, 0)).toBe(undefined);
+                });
+            });
+        
+            /**
+             * unstrikeNote
+             */
+            describe('unstrikeNote', function() {
+                beforeEach(function() {
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos.length).toBe(2);
+                    expect(scope.todoLists[id].todos[1].notes.length).toBe(0);
+                    scope.makeNote(1, 1, 'Should I push this back?');
+                    expect(scope.todoLists[id].todos[1].notes.length).toBe(1);
+                });
+        
+                it('should mark a note as relevant===true', function() {
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(true);
+                    scope.strikeNote(1, 1, 0);
+                    expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(false);
+                    scope.unstrikeNote(1, 1, 0);
+                    expect(scope.todoLists[id].todos[1].notes[0].relevant).toBe(true);
+                });
+        
+                it('should ignore out-of-bound indices', function() {
+                    scope.unstrikeNote(1, 1, 1);
+                    var id = scope.tableOfContents[1]._id;
+                    expect(scope.todoLists[id].todos[1].notes[1]).toBe(undefined);
+                    scope.unstrikeNote(1, 1, -1);
+                    expect(scope.todoLists[id].todos[1].notes[-1]).toBe(undefined);
+                    scope.unstrikeNote(1, 2, 0);
+                    expect(scope.todoLists[id].todos[2]).toBe(undefined);
+                    scope.unstrikeNote(1, -1, 0);
+                    expect(scope.todoLists[id].todos[-1]).toBe(undefined);
+    
+                    expect(scope.unstrikeNote(2, 0, 0)).toBe(undefined);
+                    expect(scope.unstrikeNote(-1, 0, 0)).toBe(undefined);
+               });
+            });
+        
+            /**
+             * assignTodo
+             */
+            describe('assignTodo', function() {
+        
+                it('should assign a user to the task', function() {
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[0].assignees.length).toBe(0);
+
+                    scope.assignTodo(0, 0, VERIFICATION_DATA);
+                    expect(scope.todoLists[id].todos[0].assignees.length).toBe(1);
+                    expect(scope.todoLists[id].todos[0].assignees[0].name).toBe('dan');
+                });
+        
+                it('should ignore out-of-bound indices', function() {
+                    scope.assignTodo(0, 2, VERIFICATION_DATA);
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[2]).toBe(undefined);
+
+                    scope.assignTodo(0, -1, VERIFICATION_DATA);
+                    expect(scope.todoLists[id].todos[-1]).toBe(undefined);
+                    expect(scope.assignTodo(2, 0, VERIFICATION_DATA)).toBe(undefined);
+                    expect(scope.assignTodo(-1, 0, VERIFICATION_DATA)).toBe(undefined);
+                });
+            });
+        
+            /**
+             * relieveTodo
+             */
+            describe('relieveTodo', function() {
+        
+                beforeEach(function() {
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[0].assignees.length).toBe(0);
+                    scope.assignTodo(0, 0, VERIFICATION_DATA);
+                    expect(scope.todoLists[id].todos[0].assignees.length).toBe(1);
+                });
+ 
+                it('should remove a user from the task', function() {
+                    scope.relieveTodo(0, 0, 0);
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[0].assignees.length).toBe(0);
+                    expect(scope.todoLists[id].todos[0].assignees[0]).toBe(undefined);
+                });
+        
+                it('should ignore out-of-bound indices', function() {
+                    scope.relieveTodo(0, 2, VERIFICATION_DATA);
+                    var id = scope.tableOfContents[0]._id;
+                    expect(scope.todoLists[id].todos[2]).toBe(undefined);
+                    scope.relieveTodo(0, -1, VERIFICATION_DATA);
+                    expect(scope.todoLists[id].todos[-1]).toBe(undefined);
+    
+                    expect(scope.relieveTodo(2, 0, VERIFICATION_DATA)).toBe(undefined);
+                    expect(scope.relieveTodo(-1, 0, VERIFICATION_DATA)).toBe(undefined);
+                    
+                });
+             });
         });
-    
-        /**
-         * assignTodo
-         */
-        describe('assignTodo', function() {
-            beforeEach(function() {
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(0);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-            });
-    
-            it('should assign a user to the task', function() {
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[0].assignees.length).toBe(0);
-                scope.assignTodo(0, 0, VERIFICATION_DATA);
-                expect(scope.todoLists[id].todos[0].assignees.length).toBe(1);
-                expect(scope.todoLists[id].todos[0].assignees[0].name).toBe('dan');
-            });
-    
-            it('should ignore out-of-bound indices', function() {
-                scope.assignTodo(0, 2, VERIFICATION_DATA);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[2]).toBe(undefined);
-                scope.assignTodo(0, -1, VERIFICATION_DATA);
-                expect(scope.todoLists[id].todos[-1]).toBe(undefined);
-
-                expect(scope.assignTodo(2, 0, VERIFICATION_DATA)).toBe(undefined);
-                expect(scope.assignTodo(-1, 0, VERIFICATION_DATA)).toBe(undefined);
-            });
-        });
-    
-        /**
-         * relieveTodo
-         */
-        describe('relieveTodo', function() {
-            beforeEach(function() {
-                expect(Object.keys(scope.todoLists).length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
-                scope.addTodo(0);
-                $httpBackend.flush();
-
-                scope.todoDescription = 'Do this next';
-
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
-                scope.addTodo(0);
-                $httpBackend.flush();
-
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-    
-                scope.todoDescription = 'Do this first';
-                scope.addTodo(1);
-                scope.todoDescription = 'Do this next';
-                scope.addTodo(1);
-                id = scope.tableOfContents[1]._id;
-                expect(scope.todoLists[id].todos.length).toBe(2);
-    
-                id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[0].assignees.length).toBe(0);
-                scope.assignTodo(0, 0, VERIFICATION_DATA);
-                expect(scope.todoLists[id].todos[0].assignees.length).toBe(1);
-            });
-    
-            it('should remove a user from the task', function() {
-                scope.relieveTodo(0, 0, 0);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[0].assignees.length).toBe(0);
-                expect(scope.todoLists[id].todos[0].assignees[0]).toBe(undefined);
-            });
-    
-            it('should ignore out-of-bound indices', function() {
-                scope.relieveTodo(0, 2, VERIFICATION_DATA);
-                var id = scope.tableOfContents[0]._id;
-                expect(scope.todoLists[id].todos[2]).toBe(undefined);
-                scope.relieveTodo(0, -1, VERIFICATION_DATA);
-                expect(scope.todoLists[id].todos[-1]).toBe(undefined);
-
-                expect(scope.relieveTodo(2, 0, VERIFICATION_DATA)).toBe(undefined);
-                expect(scope.relieveTodo(-1, 0, VERIFICATION_DATA)).toBe(undefined);
-                
-            });
-         });
     });
 
     /**
