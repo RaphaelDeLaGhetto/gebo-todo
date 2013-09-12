@@ -80,11 +80,6 @@ describe('Controller: AppCtrl', function () {
         $httpBackend.when('GET', VERIFICATION_ENDPOINT +
                 '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
  
-//        $httpBackend.whenGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN).
-//                    respond([{ _id: '1', name: 'a new list' },
-//                             { _id: '2', name: 'another new list' }]);
-
-
         /**
          * PUTS with different DATA_TO_SAVE (cloned and modified)
          */
@@ -203,8 +198,7 @@ describe('Controller: AppCtrl', function () {
                     '?access_token=' + ACCESS_TOKEN + '&id=1').
                 respond(VERIFICATION_DATA);
  
-            scope.tableOfContents = [ { _id: '1', name: 'word to your mom'} ];
-        });
+            scope.tableOfContents = [ { _id: '1', name: 'word to your mom'} ]; });
 
         it('should copy a todo list from the server to the client', function() {
             $httpBackend.expectGET(CP_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN + '&id=1');
