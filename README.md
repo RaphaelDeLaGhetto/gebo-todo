@@ -9,7 +9,7 @@ You'll need these if they're not installed already:
   
 ```
 sudo apt-get install ruby1.9.1 
-apt-get install ruby-compass   
+gem install compass   
 ```
 
 ## Install the client
