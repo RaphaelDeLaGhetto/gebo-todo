@@ -5,8 +5,8 @@ An AngularJS app to interface with gebo-server
 
 ## Ruby and Compass            
 
-You'll need these if they're not installed already:                                                                              
-  
+You'll need these if they're not installed already:
+
 ```
 sudo apt-get install ruby1.9.1 
 gem install compass   
