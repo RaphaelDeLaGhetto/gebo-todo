@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .factory('Token', function ($http, $q, $window, $rootScope, $resource) {
+  .factory('Token', function ($http, $q, $window, $rootScope, $resource, $filter) {
 
     /**
      * This the data returned on verification.
@@ -300,7 +300,7 @@ angular.module('geboClientApp')
             deferred.resolve(data);
           },
           function(err) {
-            deferred.reject(err)
+            deferred.reject(err);
           });
 
         return deferred.promise;
@@ -392,10 +392,10 @@ angular.module('geboClientApp')
     function _formEncode(obj) {
         var jsonString = '';
         for (var key in obj) {
-            if (jsonString.length != 0) {
-              jsonString += '&'
-            }
-            jsonString += key + '=' + $filter('json')(obj[key]);
+          if (jsonString.length !== 0) {
+            jsonString += '&';
+          }
+          jsonString += key + '=' + $filter('json')(obj[key]);
         }
         return jsonString;
       }

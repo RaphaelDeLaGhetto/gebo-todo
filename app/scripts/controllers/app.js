@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('geboClientApp')
-  .controller('AppCtrl', function ($scope, List, Token, $q) {
+  .controller('AppCtrl', function ($scope, List, Token) {
 
     /**
      * The table of contents (so we don't have to 
@@ -18,7 +18,7 @@ angular.module('geboClientApp')
         Token.ls().
           then(function(data) {
                 $scope.tableOfContents = data;
-            });
+              });
       };
 
     /**
@@ -45,12 +45,9 @@ angular.module('geboClientApp')
           return;
         }
 
-        console.log('cp ' + index);
         var copyId = $scope.tableOfContents[index]._id;
         Token.cp(copyId).then(function(copiedList) {
             $scope.todoLists[copyId] = List.restoreObject(copiedList);
-            console.log('cp ------------------');
-            console.log($scope.todoLists[copyId]);
           });
       };
 
@@ -64,7 +61,7 @@ angular.module('geboClientApp')
           return;
         }
         var removeId = $scope.tableOfContents[index]._id;
-        Token.rm(removeId).then(function(res) {
+        Token.rm(removeId).then(function() {
             $scope.tableOfContents.splice(index, 1);
             delete $scope.todoLists[removeId];
           });
@@ -83,7 +80,7 @@ angular.module('geboClientApp')
         var id = $scope.tableOfContents[index]._id;
         $scope.todoLists[id].add($scope.todoDescription, Token.data());
 
-        Token.save($scope.todoLists[id]).then(function(savedList) {
+        Token.save($scope.todoLists[id]).then(function() {
             $scope.todoDescription = '';
           });
       };
@@ -246,5 +243,4 @@ angular.module('geboClientApp')
         }
         return true;
       };
-    
   });
