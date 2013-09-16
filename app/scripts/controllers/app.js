@@ -45,9 +45,15 @@ angular.module('geboClientApp')
           return;
         }
 
+        console.log('cp');
+        console.log(index);
+        console.log($scope.tableOfContents);
+
         var copyId = $scope.tableOfContents[index]._id;
+        console.log(copyId);
         Token.cp(copyId).then(function(copiedList) {
             $scope.todoLists[copyId] = List.restoreObject(copiedList);
+            console.log($scope.todoLists);
           });
       };
 

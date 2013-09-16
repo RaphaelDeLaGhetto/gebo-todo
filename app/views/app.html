@@ -6,20 +6,18 @@
         <input class="btn-primary" type="submit" value="add" />
     </form>
     <tabset class="tabs-left">
-        <tab ng-repeat="list in tableOfContents">
+        <tab ng-repeat="item in tableOfContents">
         <tab-heading ng-click="cp($index)">
-             <i class="icon-minus-sign pull-right" ng-click="rm($index)"></i> {{list.name}}
+             <i class="icon-minus-sign pull-right" ng-click="rm($index)"></i> {{item.name}}
         </tab-heading>
-            <p>Owner: {{list.owner.name}}  </p>
             <form ng-submit="addTodo($index)">
                 <input type="text" ng-model="$parent.todoDescription"
                     size=30 placeholder="My new todo" />
                 <input class="btn-primary" type="submit" value="add" />
-                <ol>
-                    <li ng-repeat="todo in list.todos">{{todo.description}}</li>
-                </ol>
             </form>
-    
+            <ol>
+                <li ng-repeat="list in todoLists[item._id].todos">{{list.description}}</li>
+            </ol> 
             <div ui-view></div>
         </tab>
     </tabset>
