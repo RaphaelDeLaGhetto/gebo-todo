@@ -97,8 +97,11 @@ describe('Controller: AppCtrl', function () {
         var savedData = angular.copy(expectedUnsavedData);
         savedData.id = '1';
 
+//        $httpBackend.whenPOST(SAVE_ENDPOINT, expectedUnsavedData).
+//                respond(angular.copy(savedData));
+
         $httpBackend.whenPOST(SAVE_ENDPOINT, expectedUnsavedData).
-                respond(angular.copy(savedData));
+                respond(savedData.id);
  
 
         /**
@@ -150,7 +153,7 @@ describe('Controller: AppCtrl', function () {
 
         it('should add a new todo list to the todo associative array', function() {
 
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
+            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData).respond(savedData._id);
             $httpBackend.expectGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN);
 
             expect(Object.keys(scope.todoLists).length).toBe(0);
@@ -234,7 +237,7 @@ describe('Controller: AppCtrl', function () {
 
             savedData = angular.copy(expectedData)
             savedData._id = '1';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
+            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData._id);
 
             // For the second new list
             expectedData = angular.copy(DATA_TO_SAVE);
@@ -242,7 +245,7 @@ describe('Controller: AppCtrl', function () {
             expectedData.access_token = ACCESS_TOKEN;
             savedData = angular.copy(expectedData)
             savedData._id = '2';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData);
+            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData._id);
 
  
             scope.name = 'a new list';
@@ -359,7 +362,7 @@ describe('Controller: AppCtrl', function () {
 
             savedData1 = angular.copy(expectedData1)
             savedData1._id = '1';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1);
+            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1._id);
 
             // For the second new list
             expectedData2 = angular.copy(DATA_TO_SAVE);
@@ -367,7 +370,7 @@ describe('Controller: AppCtrl', function () {
             expectedData2.access_token = ACCESS_TOKEN;
             savedData2 = angular.copy(expectedData2)
             savedData2._id = '2';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2);
+            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2._id);
 
             scope.name = 'a new list';
             scope.create(); 
@@ -401,10 +404,10 @@ describe('Controller: AppCtrl', function () {
                 expectedData2._id = '2';
  
                 // Add todos to the first list
-                $httpBackend.whenPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1);
+                $httpBackend.whenPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1._id);
    
                 // Add todos to the second list
-                $httpBackend.whenPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2);
+                $httpBackend.whenPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2._id);
              });
 
             it('should add a todo to the given list', function() {
@@ -472,12 +475,12 @@ describe('Controller: AppCtrl', function () {
                 expectedData1._id = '1';
     
                 // Add todos to the first list
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1);
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1._id);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(0);
                 $httpBackend.flush();
     
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1);
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1._id);
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(0);
                 $httpBackend.flush();
@@ -490,13 +493,13 @@ describe('Controller: AppCtrl', function () {
                 expectedData2._id = '2';
     
                 // Add todos to the second list
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2);
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2._id);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(1);
                 $httpBackend.flush();
     
                 scope.todoDescription = 'Do this next';
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2);
+                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2._id);
                 scope.addTodo(1);
                 $httpBackend.flush();
     

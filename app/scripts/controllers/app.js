@@ -30,8 +30,9 @@ angular.module('geboClientApp')
         }
         var list = List.getNewObject($scope.name, Token.data());
 
-        Token.save(list).then(function(savedList) {
-            $scope.todoLists[savedList._id] = savedList;
+        Token.save(list).then(function(savedListId) {
+            list._id = savedListId;
+            $scope.todoLists[savedListId] = list;
             $scope.name = '';
             $scope.init();
           });
