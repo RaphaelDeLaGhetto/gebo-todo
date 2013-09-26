@@ -7,11 +7,11 @@ describe('Service: Token', function () {
         AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
         APP_DATA_ENDPOINT = 'http://theirhost.com/api/retrieve',
-        LS_DATA_ENDPOINT = 'http://theirhost.com/api/ls',
-        RM_DATA_ENDPOINT = 'http://theirhost.com/api/rm',
+        ADMIN_LS_DATA_ENDPOINT = 'http://theirhost.com/api/adminls',
+        //RM_DATA_ENDPOINT = 'http://theirhost.com/api/rm',
+        REQUEST_ENDPOINT = 'http://theirhost.com/request',
         RMDIR_DATA_ENDPOINT = 'http://theirhost.com/api/rmdir',
         SAVE_ENDPOINT = 'http://theirhost.com/api/save',
-        CP_DATA_ENDPOINT = 'http://theirhost.com/api/cp',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
@@ -104,8 +104,6 @@ describe('Service: Token', function () {
               verificationEndpoint: VERIFICATION_ENDPOINT,
               saveEndpoint: SAVE_ENDPOINT,
               appDataEndpoint: APP_DATA_ENDPOINT,
-              lsDataEndpoint: LS_DATA_ENDPOINT,
-              cpDataEndpoint: CP_DATA_ENDPOINT,
               localStorageName: 'accessToken',
               scopes: SCOPES
             });
@@ -216,12 +214,12 @@ describe('Service: Token', function () {
                   clientId: CLIENT_ID,
                   redirectUri: REDIRECT_URI,
                   authorizationEndpoint: AUTHORIZATION_ENDPOINT,
+                  requestEndpoint: REQUEST_ENDPOINT,
                   verificationEndpoint: VERIFICATION_ENDPOINT,
                   saveEndpoint: SAVE_ENDPOINT,
                   appDataEndpoint: APP_DATA_ENDPOINT,
-                  lsDataEndpoint: LS_DATA_ENDPOINT,
-                  cpDataEndpoint: CP_DATA_ENDPOINT,
-                  rmDataEndpoint: RM_DATA_ENDPOINT,
+                  adminLsDataEndpoint: ADMIN_LS_DATA_ENDPOINT,
+//                  rmDataEndpoint: RM_DATA_ENDPOINT,
                   rmdirDataEndpoint: RMDIR_DATA_ENDPOINT,
                   localStorageName: 'accessToken',
                   scopes: SCOPES
@@ -248,6 +246,67 @@ describe('Service: Token', function () {
                         '?access_token=' + ACCESS_TOKEN); 
                 expect(token.verifyAsync(ACCESS_TOKEN)).toBeDefined();
                 $httpBackend.flush();
+            });
+        });
+
+        /**
+         * request
+         */
+        describe('request', function() {
+        
+            /**
+             * action: ls
+             */
+            describe('action: ls', function() {
+
+                it('should get the list of documents in the collection', function() {
+                    $httpBackend.expectPOST(REQUEST_ENDPOINT, {
+                            action: 'ls',
+                            access_token: ACCESS_TOKEN
+                        }).respond([{ _id: '1', name: 'doc 1'},
+                                    { _id: '2', name: 'doc 2'}]);
+
+                    var deferred = token.request({ action: 'ls' });
+       
+                    var _list;
+                    deferred.then(function(list) {
+                      _list = list; 
+                    });
+       
+                    $httpBackend.flush();
+       
+                    expect(_list[0]._id).toBe('1');
+                    expect(_list[0].name).toBe('doc 1');
+                    expect(_list[1]._id).toBe('2');
+                    expect(_list[1].name).toBe('doc 2');
+                });
+             });
+
+            /**
+             * action: cp
+             */
+            describe('action: cp', function() {
+                it('should get the requested document from the collection', function() {
+                    $httpBackend.expectPOST(REQUEST_ENDPOINT, {
+                            action: 'cp',
+                            id: '1',
+                            access_token: ACCESS_TOKEN
+                        }).respond(VERIFICATION_DATA);
+
+                     var deferred = token.request({ action: 'cp', id: '1' });
+        
+                     var _doc;
+                     deferred.then(function(doc) {
+                       _doc = doc; 
+                     });
+        
+                     $httpBackend.flush();
+        
+                     expect(_doc.id).toBe('1');
+                     expect(_doc.name).toBe('dan');
+                     expect(_doc.email).toBe('dan@email.com');
+                     expect(_doc.scope).toEqual(['*']);
+                });
             });
         });
 
@@ -298,69 +357,6 @@ describe('Service: Token', function () {
             }));
         });
 
-
-        /**
-         * ls
-         */
-        describe('ls', function() {
-            beforeEach(function() {
-                $httpBackend.whenGET(LS_DATA_ENDPOINT +
-                        '?access_token=' + ACCESS_TOKEN).
-                        respond([{ _id: '1', name: 'doc 1'},
-                                 { _id: '2', name: 'doc 2'}]);
-            });
-    
-            it('should GET the list of documents in the collection', function() {
-                 $httpBackend.expectGET(LS_DATA_ENDPOINT + '?access_token=' + ACCESS_TOKEN);
-    
-                 var deferred = token.ls();
-    
-                 var _list;
-                 deferred.then(function(list) {
-                   _list = list; 
-                 });
-    
-                 $httpBackend.flush();
-                 //$rootScope.$apply();
-    
-                 expect(_list[0]._id).toBe('1');
-                 expect(_list[0].name).toBe('doc 1');
-                 expect(_list[1]._id).toBe('2');
-                 expect(_list[1].name).toBe('doc 2');
-             });
-        });
-    
-        /**
-         * cp
-         */
-        describe('cp', function() {
-    
-            beforeEach(function() {
-                $httpBackend.whenGET(CP_DATA_ENDPOINT +
-                        '?access_token=' + ACCESS_TOKEN + '&id=1').
-                        respond(VERIFICATION_DATA);
-            });
-    
-            it('should GET the requested document from the collection', function() {
-                 $httpBackend.expectGET(CP_DATA_ENDPOINT +
-                        '?access_token=' + ACCESS_TOKEN + '&id=1');
-    
-                 var deferred = token.cp('1');
-    
-                 var _doc;
-                 deferred.then(function(doc) {
-                   _doc = doc; 
-                 });
-    
-                 $httpBackend.flush();
-    
-                 expect(_doc.id).toBe('1');
-                 expect(_doc.name).toBe('dan');
-                 expect(_doc.email).toBe('dan@email.com');
-                 expect(_doc.scope).toEqual(['*']);
-              });
-        });
-    
         /**
          * save
          */
@@ -387,50 +383,50 @@ describe('Service: Token', function () {
         /**
          * rm 
          */
-        describe('rm', function() {
-
-            var MONGO_ID = 'mongoId123',
-                NO_SUCH_MONGO_ID = 'noSuchMongoId123';
-
-            beforeEach(function() {
-                $httpBackend.whenDELETE(RM_DATA_ENDPOINT + '?_id=' + MONGO_ID +
-                        '&access_token=' + ACCESS_TOKEN).
-                    respond(200, 'Deleted');
-                $httpBackend.whenDELETE(RM_DATA_ENDPOINT + '?_id=' + NO_SUCH_MONGO_ID +
-                        '&access_token=' + ACCESS_TOKEN).
-                    respond(204, 'No such document');
-            });
- 
-            it('should remove the document from the collection', function() {
-                $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=' + MONGO_ID +
-                        '&access_token=' + ACCESS_TOKEN);
-                var deferred = token.rm(MONGO_ID);
-
-                var code;
-                deferred.then(function(res) {
-                    code = res;
-                });
-                
-                $httpBackend.flush();
-
-                expect(code).toBe('Deleted');
-            });
-
-            it('should not barf if asked to remove a document that does not exist', function() {
-                $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=' + NO_SUCH_MONGO_ID +
-                        '&access_token=' + ACCESS_TOKEN);
-                var deferred = token.rm(NO_SUCH_MONGO_ID);
-
-                var code;
-                deferred.then(function(res) {
-                    code = res;
-                });
-                
-                $httpBackend.flush();
-
-                expect(code).toBe('No such document');
-            });
-         });
+//        describe('rm', function() {
+//
+//            var MONGO_ID = 'mongoId123',
+//                NO_SUCH_MONGO_ID = 'noSuchMongoId123';
+//
+//            beforeEach(function() {
+//                $httpBackend.whenDELETE(RM_DATA_ENDPOINT + '?_id=' + MONGO_ID +
+//                        '&access_token=' + ACCESS_TOKEN).
+//                    respond(200, 'Deleted');
+//                $httpBackend.whenDELETE(RM_DATA_ENDPOINT + '?_id=' + NO_SUCH_MONGO_ID +
+//                        '&access_token=' + ACCESS_TOKEN).
+//                    respond(204, 'No such document');
+//            });
+// 
+//            it('should remove the document from the collection', function() {
+//                $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=' + MONGO_ID +
+//                        '&access_token=' + ACCESS_TOKEN);
+//                var deferred = token.rm(MONGO_ID);
+//
+//                var code;
+//                deferred.then(function(res) {
+//                    code = res;
+//                });
+//                
+//                $httpBackend.flush();
+//
+//                expect(code).toBe('Deleted');
+//            });
+//
+//            it('should not barf if asked to remove a document that does not exist', function() {
+//                $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=' + NO_SUCH_MONGO_ID +
+//                        '&access_token=' + ACCESS_TOKEN);
+//                var deferred = token.rm(NO_SUCH_MONGO_ID);
+//
+//                var code;
+//                deferred.then(function(res) {
+//                    code = res;
+//                });
+//                
+//                $httpBackend.flush();
+//
+//                expect(code).toBe('No such document');
+//            });
+//         });
     
         /**
          * rmdir 

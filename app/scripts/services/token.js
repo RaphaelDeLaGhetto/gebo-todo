@@ -27,12 +27,12 @@ angular.module('geboClientApp')
       clientId: REQUIRED_AND_MISSING,
       redirectUri: REQUIRED_AND_MISSING,
       authorizationEndpoint: REQUIRED_AND_MISSING,
+      requestEndpoint: null,
       verificationEndpoint: REQUIRED_AND_MISSING,
       saveEndpoint: null,
       appDataEndpoint: null,
-      lsDataEndpoint: null,
-      cpDataEndpoint: null,
-      rmDataEndpoint: null,
+      adminLsDataEndpoint: null,
+//      rmDataEndpoint: null,
       rmdirDataEndpoint: null,
       localStorageName: 'accessToken',
       scopes: []
@@ -281,46 +281,9 @@ angular.module('geboClientApp')
                         deferred.resolve(savedData);
                       }).
                 error(
-                    function(err) {
+                    function(obj, err) {
                         deferred.reject(err);
                       });
-
-        return deferred.promise;
-      };
-
-    /**
-     * Retrieve a collection listing
-     */
-    var _ls = function() {
-        var deferred = $q.defer();
-
-        var Ls = $resource(_config.lsDataEndpoint, { access_token: _get() });
-
-        Ls.query(function(data) {
-            deferred.resolve(data);
-          },
-          function(err) {
-            deferred.reject(err);
-          });
-
-        return deferred.promise;
-      };
-
-    /**
-     * Copy a document from the server to the client
-     *
-     * @param string
-     */
-    var _cp = function(id) {
-        var deferred = $q.defer();
-
-        var Cp = $resource(_config.cpDataEndpoint,
-                        { access_token: _get(),
-                          id: id });
-
-        Cp.get(function(data) {
-            deferred.resolve(data);
-          });
 
         return deferred.promise;
       };
@@ -332,31 +295,21 @@ angular.module('geboClientApp')
      *
      * @return promise
      */
-    var _rm = function(id) {
-        var deferred = $q.defer();
-
-//        var Rm = $resource(_config.rmDataEndpoint, { _id: id, access_token: _get() });
+//    var _rm = function(id) {
+//        var deferred = $q.defer();
 //
-//        Rm.remove(function(data) {
-//            deferred.resolve(data);
-//          },
-//          function(err) {
-//            deferred.reject(err)
-//          });
-
-
-        $http.delete(_config.rmDataEndpoint, { params: { _id: id, access_token: _get() }}).
-                success(
-                    function(res) {
-                        deferred.resolve(res);
-                      }).
-                error(
-                    function(err) {
-                        deferred.reject(err);
-                      });
-
-        return deferred.promise;
-      };
+//        $http.delete(_config.rmDataEndpoint, { params: { _id: id, access_token: _get() }}).
+//                success(
+//                    function(res) {
+//                        deferred.resolve(res);
+//                      }).
+//                error(
+//                    function(err) {
+//                        deferred.reject(err);
+//                      });
+//
+//        return deferred.promise;
+//      };
 
     /**
      * Remove a collection
@@ -381,6 +334,29 @@ angular.module('geboClientApp')
         return deferred.promise;
       };
 
+    /**
+     * Send a request
+     *
+     * @param Object 
+     */
+    function _request(content) {
+        var deferred = $q.defer();
+
+        content.access_token = _get();
+
+        $http.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+        $http.post(_config.requestEndpoint, content).
+                success(
+                    function(response) {
+                        deferred.resolve(response);
+                      }).
+                error(
+                    function(obj, err) {
+                        deferred.reject(err);
+                      });
+
+        return deferred.promise;
+      };
 
     /**
      * Encode embedded JSON
@@ -405,7 +381,6 @@ angular.module('geboClientApp')
      */
     return {
       clear: _clear,
-      cp: _cp,
       data: function() {
               return _data;
             },
@@ -413,11 +388,11 @@ angular.module('geboClientApp')
       get: _get,
       getTokenByPopup: _getTokenByPopup,
       getParams: _getParams,
-      ls: _ls,
       objectToQueryString: _objectToQueryString,
       verify: _verify,
       verifyAsync: _verifyAsync,
-      rm: _rm,
+      request: _request,
+//      rm: _rm,
       rmdir: _rmdir,
       save: _save,
       set: _set,

@@ -15,7 +15,7 @@ angular.module('geboClientApp')
     $scope.todoLists = {};
 
     $scope.init = function() {
-        Token.ls().
+        Token.request({ action: 'ls' }).
           then(function(data) {
                 $scope.tableOfContents = data;
               });
@@ -52,7 +52,7 @@ angular.module('geboClientApp')
 
         var copyId = $scope.tableOfContents[index]._id;
         console.log(copyId);
-        Token.cp(copyId).then(function(copiedList) {
+        Token.request({ action: 'cp', id: copyId }).then(function(copiedList) {
             $scope.todoLists[copyId] = List.restoreObject(copiedList);
             console.log($scope.todoLists);
           });
@@ -68,7 +68,7 @@ angular.module('geboClientApp')
           return;
         }
         var removeId = $scope.tableOfContents[index]._id;
-        Token.rm(removeId).then(function() {
+        Token.request({ action: 'rm', id: removeId }).then(function() {
             $scope.tableOfContents.splice(index, 1);
             delete $scope.todoLists[removeId];
           });
