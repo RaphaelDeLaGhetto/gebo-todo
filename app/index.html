@@ -27,8 +27,11 @@
     <div class="navbar navbar-fixed-top">
         <div class="navbar-inner">
             <div class="container">
-                <a class="brand" href="#/app">gebo-client</a>
+                <a class="brand" href="#/">gebo-client</a>
                 <div ng-show="verified">
+                    <ul class="nav">
+                        <li><a href="#/app">todo</a></li>
+                    </ul>
                     <ul class="nav pull-right">
                         <li><a href="#/token">Hello, {{username}}...</a></li>
                         <li><a ng-click="deauthenticate()">Goodbye, gebo</a></li>
