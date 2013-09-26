@@ -8,16 +8,14 @@ describe('Service: Token', function () {
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
         APP_DATA_ENDPOINT = 'http://theirhost.com/api/retrieve',
         ADMIN_LS_DATA_ENDPOINT = 'http://theirhost.com/api/adminls',
-        //RM_DATA_ENDPOINT = 'http://theirhost.com/api/rm',
         REQUEST_ENDPOINT = 'http://theirhost.com/request',
         RMDIR_DATA_ENDPOINT = 'http://theirhost.com/api/rmdir',
-        SAVE_ENDPOINT = 'http://theirhost.com/api/save',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
 
     var PUT_SUCCESS = { success: true },
-        DATA_TO_SAVE = { cat_breath: 'smells like catfood' };//,
+        DATA_TO_SAVE = { cat_breath: 'smells like catfood' };
 
     var VERIFICATION_DATA = {
                 id: '1',
@@ -41,12 +39,6 @@ describe('Service: Token', function () {
 
             $httpBackend.when('GET', VERIFICATION_ENDPOINT + 
                     '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
-
-            $httpBackend.whenPUT(SAVE_ENDPOINT, {
-                access_token: ACCESS_TOKEN,
-                data: DATA_TO_SAVE
-              }).respond(PUT_SUCCESS);
-
 
             $httpBackend.when('GET', 'views/main.html').respond();
         });
@@ -102,7 +94,6 @@ describe('Service: Token', function () {
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
               verificationEndpoint: VERIFICATION_ENDPOINT,
-              saveEndpoint: SAVE_ENDPOINT,
               appDataEndpoint: APP_DATA_ENDPOINT,
               localStorageName: 'accessToken',
               scopes: SCOPES
@@ -128,7 +119,6 @@ describe('Service: Token', function () {
               redirectUri: REDIRECT_URI,
               authorizationEndpoint: AUTHORIZATION_ENDPOINT,
               verificationEndpoint: VERIFICATION_ENDPOINT,
-              saveEndpoint: SAVE_ENDPOINT,
               localStorageName: 'accessToken',
               scopes: SCOPES
             });
@@ -216,10 +206,8 @@ describe('Service: Token', function () {
                   authorizationEndpoint: AUTHORIZATION_ENDPOINT,
                   requestEndpoint: REQUEST_ENDPOINT,
                   verificationEndpoint: VERIFICATION_ENDPOINT,
-                  saveEndpoint: SAVE_ENDPOINT,
                   appDataEndpoint: APP_DATA_ENDPOINT,
                   adminLsDataEndpoint: ADMIN_LS_DATA_ENDPOINT,
-//                  rmDataEndpoint: RM_DATA_ENDPOINT,
                   rmdirDataEndpoint: RMDIR_DATA_ENDPOINT,
                   localStorageName: 'accessToken',
                   scopes: SCOPES
@@ -233,8 +221,6 @@ describe('Service: Token', function () {
 
             savedData = angular.copy(unsavedData);
             savedData.id = 'some mongo id 1234';
-    
-            $httpBackend.when('POST', SAVE_ENDPOINT, expectedUnsavedData).respond(savedData);
          });
 
         /**
@@ -356,78 +342,7 @@ describe('Service: Token', function () {
                 $httpBackend.flush();
             }));
         });
-
-        /**
-         * save
-         */
-        describe('save', function() {
-    
-            it('should try to PUT something in the database', function() {
-                $httpBackend.expect('POST', SAVE_ENDPOINT, expectedUnsavedData);
-    
-                var promise = token.save(unsavedData);
-    
-                var saved;
-                promise.then(function(data) {
-                    saved = data;
-                });
-    
-                $httpBackend.flush();
-    
-                expect(saved.id).toBe('some mongo id 1234');
-                expect(saved.cat_breath).toBe('smells like catfood');
-                expect(localStorage.getItem).toHaveBeenCalled();
-            });
-         });
-    
-        /**
-         * rm 
-         */
-//        describe('rm', function() {
-//
-//            var MONGO_ID = 'mongoId123',
-//                NO_SUCH_MONGO_ID = 'noSuchMongoId123';
-//
-//            beforeEach(function() {
-//                $httpBackend.whenDELETE(RM_DATA_ENDPOINT + '?_id=' + MONGO_ID +
-//                        '&access_token=' + ACCESS_TOKEN).
-//                    respond(200, 'Deleted');
-//                $httpBackend.whenDELETE(RM_DATA_ENDPOINT + '?_id=' + NO_SUCH_MONGO_ID +
-//                        '&access_token=' + ACCESS_TOKEN).
-//                    respond(204, 'No such document');
-//            });
-// 
-//            it('should remove the document from the collection', function() {
-//                $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=' + MONGO_ID +
-//                        '&access_token=' + ACCESS_TOKEN);
-//                var deferred = token.rm(MONGO_ID);
-//
-//                var code;
-//                deferred.then(function(res) {
-//                    code = res;
-//                });
-//                
-//                $httpBackend.flush();
-//
-//                expect(code).toBe('Deleted');
-//            });
-//
-//            it('should not barf if asked to remove a document that does not exist', function() {
-//                $httpBackend.expectDELETE(RM_DATA_ENDPOINT + '?_id=' + NO_SUCH_MONGO_ID +
-//                        '&access_token=' + ACCESS_TOKEN);
-//                var deferred = token.rm(NO_SUCH_MONGO_ID);
-//
-//                var code;
-//                deferred.then(function(res) {
-//                    code = res;
-//                });
-//                
-//                $httpBackend.flush();
-//
-//                expect(code).toBe('No such document');
-//            });
-//         });
-    
+   
         /**
          * rmdir 
          */

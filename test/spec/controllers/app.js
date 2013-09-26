@@ -7,8 +7,6 @@ describe('Controller: AppCtrl', function () {
         AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
         VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
         REQUEST_ENDPOINT = 'http://theirhost.com/request',
-        SAVE_ENDPOINT = 'http://theirhost.com/api/save',
-//        RM_DATA_ENDPOINT = 'http://theirhost.com/api/rm',
         LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
@@ -54,8 +52,6 @@ describe('Controller: AppCtrl', function () {
           authorizationEndpoint: AUTHORIZATION_ENDPOINT,
           verificationEndpoint: VERIFICATION_ENDPOINT,
           requestEndpoint: REQUEST_ENDPOINT,
-          saveEndpoint: SAVE_ENDPOINT,
-//          rmDataEndpoint: RM_DATA_ENDPOINT,
           localStorageName: 'accessToken',
           scopes: SCOPES
         });
@@ -90,16 +86,13 @@ describe('Controller: AppCtrl', function () {
          */
         expectedUnsavedData = angular.copy(DATA_TO_SAVE);
         expectedUnsavedData.name = 'My new list';
-        expectedUnsavedData.access_token = ACCESS_TOKEN;
 
         var savedData = angular.copy(expectedUnsavedData);
         savedData.id = '1';
 
-//        $httpBackend.whenPOST(SAVE_ENDPOINT, expectedUnsavedData).
-//                respond(angular.copy(savedData));
-
-        $httpBackend.whenPOST(SAVE_ENDPOINT, expectedUnsavedData).
-                respond(savedData.id);
+        $httpBackend.whenPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedUnsavedData, access_token: ACCESS_TOKEN }).
+            respond(savedData._id);
  
 
         /**
@@ -152,8 +145,9 @@ describe('Controller: AppCtrl', function () {
         });
 
         it('should add a new todo list to the todo associative array', function() {
-
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedUnsavedData).respond(savedData._id);
+            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                    { action: 'save', data: expectedUnsavedData, access_token: ACCESS_TOKEN }).
+                respond(savedData._id);
             $httpBackend.expectPOST(REQUEST_ENDPOINT, { action: 'ls', access_token: ACCESS_TOKEN });
 
             expect(Object.keys(scope.todoLists).length).toBe(0);
@@ -234,19 +228,21 @@ describe('Controller: AppCtrl', function () {
             // For the first new list
             expectedData = angular.copy(DATA_TO_SAVE);
             expectedData.name = 'a new list';
-            expectedData.access_token = ACCESS_TOKEN;
 
             savedData = angular.copy(expectedData)
             savedData._id = '1';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData._id);
-
+            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                    { action: 'save', data: expectedData, access_token: ACCESS_TOKEN }).
+                respond(savedData._id);
+ 
             // For the second new list
             expectedData = angular.copy(DATA_TO_SAVE);
             expectedData.name = 'another new list';
-            expectedData.access_token = ACCESS_TOKEN;
             savedData = angular.copy(expectedData)
             savedData._id = '2';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData).respond(savedData._id);
+            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                    { action: 'save', data: expectedData, access_token: ACCESS_TOKEN }).
+                respond(savedData._id);
 
  
             scope.name = 'a new list';
@@ -272,8 +268,6 @@ describe('Controller: AppCtrl', function () {
             $httpBackend.expectPOST(REQUEST_ENDPOINT,
                     { action: 'rm', id: '1', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
-//            $httpBackend.expectDELETE(RM_DATA_ENDPOINT +
-//                    '?_id=1&access_token=' + ACCESS_TOKEN).respond('Deleted');
 
             scope.rm(0);
             $httpBackend.flush();
@@ -284,8 +278,6 @@ describe('Controller: AppCtrl', function () {
             $httpBackend.expectPOST(REQUEST_ENDPOINT,
                     { action: 'rm', id: '2', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
-//            $httpBackend.expectDELETE(RM_DATA_ENDPOINT +
-//                    '?_id=2&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(0);
             $httpBackend.flush();
 
@@ -300,8 +292,6 @@ describe('Controller: AppCtrl', function () {
             $httpBackend.expectPOST(REQUEST_ENDPOINT,
                     { action: 'rm', id: '2', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
-//            $httpBackend.expectDELETE(RM_DATA_ENDPOINT +
-//                    '?_id=2&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(1);
             $httpBackend.flush();
 
@@ -311,8 +301,6 @@ describe('Controller: AppCtrl', function () {
             $httpBackend.expectPOST(REQUEST_ENDPOINT,
                     { action: 'rm', id: '1', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
-//            $httpBackend.expectDELETE(RM_DATA_ENDPOINT +
-//                    '?_id=1&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(0);
             $httpBackend.flush();
 
@@ -330,8 +318,6 @@ describe('Controller: AppCtrl', function () {
             $httpBackend.expectPOST(REQUEST_ENDPOINT,
                     { action: 'rm', id: '2', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
-//            $httpBackend.expectDELETE(RM_DATA_ENDPOINT +
-//                    '?_id=2&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(1);
             $httpBackend.flush();
 
@@ -349,8 +335,6 @@ describe('Controller: AppCtrl', function () {
             $httpBackend.expectPOST(REQUEST_ENDPOINT,
                     { action: 'rm', id: '1', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
-//            $httpBackend.expectDELETE(RM_DATA_ENDPOINT +
-//                    '?_id=1&access_token=' + ACCESS_TOKEN).respond('Deleted');
             scope.rm(0);
             $httpBackend.flush();
 
@@ -377,20 +361,22 @@ describe('Controller: AppCtrl', function () {
             // For the first new list
             expectedData1 = angular.copy(DATA_TO_SAVE);
             expectedData1.name = 'a new list';
-            expectedData1.access_token = ACCESS_TOKEN;
 
             savedData1 = angular.copy(expectedData1)
             savedData1._id = '1';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1._id);
-
+            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                    { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN }).
+                respond(savedData1._id);
+ 
             // For the second new list
             expectedData2 = angular.copy(DATA_TO_SAVE);
             expectedData2.name = 'another new list';
-            expectedData2.access_token = ACCESS_TOKEN;
             savedData2 = angular.copy(expectedData2)
             savedData2._id = '2';
-            $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2._id);
-
+            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                    { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN }).
+                respond(savedData2._id);
+ 
             scope.name = 'a new list';
             scope.create(); 
             scope.name = 'another new list';
@@ -423,15 +409,19 @@ describe('Controller: AppCtrl', function () {
                 expectedData2._id = '2';
  
                 // Add todos to the first list
-                $httpBackend.whenPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1._id);
-   
+                $httpBackend.whenPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN }).
+                    respond(savedData1._id);
+  
                 // Add todos to the second list
-                $httpBackend.whenPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2._id);
-             });
+                $httpBackend.whenPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN }).
+                    respond(savedData2._id);
+              });
 
             it('should add a todo to the given list', function() {
-   
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1);
+                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN });
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(0);
                 $httpBackend.flush();
@@ -443,7 +433,8 @@ describe('Controller: AppCtrl', function () {
                 expect(scope.todoLists[id].todos[0].description).toBe('Do this first');
                 expect(scope.todoLists[id].todos[0].owner).toEqual(VERIFICATION_DATA);
 
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1);
+                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN });
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(0);
                 $httpBackend.flush();
@@ -451,14 +442,18 @@ describe('Controller: AppCtrl', function () {
                 expect(scope.todoDescription).toBe('');
                 expect(scope.todoLists[id].todos.length).toBe(2);
     
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2);
+                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN });
+ 
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(1);
                 $httpBackend.flush();
 
                 expect(scope.todoDescription).toBe('');
 
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2);
+                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN });
+ 
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(1);
                 $httpBackend.flush();
@@ -494,12 +489,16 @@ describe('Controller: AppCtrl', function () {
                 expectedData1._id = '1';
     
                 // Add todos to the first list
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1._id);
+                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN }).
+                    respond(savedData1._id);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(0);
                 $httpBackend.flush();
     
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData1).respond(savedData1._id);
+                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN }).
+                    respond(savedData1._id);
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(0);
                 $httpBackend.flush();
@@ -512,13 +511,17 @@ describe('Controller: AppCtrl', function () {
                 expectedData2._id = '2';
     
                 // Add todos to the second list
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2._id);
+                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN }).
+                    respond(savedData2._id);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(1);
                 $httpBackend.flush();
     
                 scope.todoDescription = 'Do this next';
-                $httpBackend.expectPOST(SAVE_ENDPOINT, expectedData2).respond(savedData2._id);
+                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                        { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN }).
+                    respond(savedData2._id);
                 scope.addTodo(1);
                 $httpBackend.flush();
     

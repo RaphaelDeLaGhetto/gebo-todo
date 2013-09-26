@@ -29,10 +29,8 @@ angular.module('geboClientApp')
       authorizationEndpoint: REQUIRED_AND_MISSING,
       requestEndpoint: null,
       verificationEndpoint: REQUIRED_AND_MISSING,
-      saveEndpoint: null,
       appDataEndpoint: null,
       adminLsDataEndpoint: null,
-//      rmDataEndpoint: null,
       rmdirDataEndpoint: null,
       localStorageName: 'accessToken',
       scopes: []
@@ -264,54 +262,6 @@ angular.module('geboClientApp')
       };
 
     /**
-     * Save data to the client's collection on 
-     * the user's profile (or wherever).
-     *
-     * @param string
-     */
-    var _save= function(unsavedData) {
-        var deferred = $q.defer();
-
-        unsavedData.access_token = _get();
-
-        $http.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
-        $http.post(_config.saveEndpoint, unsavedData).
-                success(
-                    function(savedData) {
-                        deferred.resolve(savedData);
-                      }).
-                error(
-                    function(obj, err) {
-                        deferred.reject(err);
-                      });
-
-        return deferred.promise;
-      };
-
-    /**
-     * Remove a document from the collection
-     *
-     * @param string
-     *
-     * @return promise
-     */
-//    var _rm = function(id) {
-//        var deferred = $q.defer();
-//
-//        $http.delete(_config.rmDataEndpoint, { params: { _id: id, access_token: _get() }}).
-//                success(
-//                    function(res) {
-//                        deferred.resolve(res);
-//                      }).
-//                error(
-//                    function(err) {
-//                        deferred.reject(err);
-//                      });
-//
-//        return deferred.promise;
-//      };
-
-    /**
      * Remove a collection
      *
      * @param string
@@ -392,9 +342,7 @@ angular.module('geboClientApp')
       verify: _verify,
       verifyAsync: _verifyAsync,
       request: _request,
-//      rm: _rm,
       rmdir: _rmdir,
-      save: _save,
       set: _set,
       setParams: _setParams,
     };
