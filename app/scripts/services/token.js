@@ -4,7 +4,7 @@ angular.module('geboClientApp')
   .factory('Token', function ($http, $q, $window, $rootScope, $resource, $filter) {
 
     /**
-     * This the data returned on verification.
+     * This is the data returned on verification.
      */
     var _data = {};
 
@@ -29,8 +29,6 @@ angular.module('geboClientApp')
       authorizationEndpoint: REQUIRED_AND_MISSING,
       requestEndpoint: null,
       verificationEndpoint: REQUIRED_AND_MISSING,
-      appDataEndpoint: null,
-      adminLsDataEndpoint: null,
       rmdirDataEndpoint: null,
       localStorageName: 'accessToken',
       scopes: []
