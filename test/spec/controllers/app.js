@@ -2,12 +2,8 @@
 
 describe('Controller: AppCtrl', function () {
 
-    var CLIENT_ID = 'abc123',
+    var GEBO_ADDRESS = 'http://theirhost.com',
         REDIRECT_URI = 'http://myhost.com',
-        AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
-        VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
-        REQUEST_ENDPOINT = 'http://theirhost.com/request',
-        LOCALSTORAGE_NAME = 'accessToken',
         SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
  
@@ -46,13 +42,9 @@ describe('Controller: AppCtrl', function () {
         /**
          * Set up Token before injecting an AppCtrl
          */
-        Token.setParams({
-          clientId: CLIENT_ID,
-          redirectUri: REDIRECT_URI,
-          authorizationEndpoint: AUTHORIZATION_ENDPOINT,
-          verificationEndpoint: VERIFICATION_ENDPOINT,
-          requestEndpoint: REQUEST_ENDPOINT,
-          localStorageName: 'accessToken',
+        Token.setEndpoints({
+          gebo: GEBO_ADDRESS,
+          redirect: REDIRECT_URI,
           scopes: SCOPES
         });
 
@@ -71,7 +63,7 @@ describe('Controller: AppCtrl', function () {
          */
         $httpBackend = $injector.get('$httpBackend');
 
-        $httpBackend.when('GET', VERIFICATION_ENDPOINT +
+        $httpBackend.when('GET', Token.getEndpointUri('verify') +
                 '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
  
         /**
@@ -90,7 +82,7 @@ describe('Controller: AppCtrl', function () {
         var savedData = angular.copy(expectedUnsavedData);
         savedData.id = '1';
 
-        $httpBackend.whenPOST(REQUEST_ENDPOINT,
+        $httpBackend.whenPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedUnsavedData, access_token: ACCESS_TOKEN }).
             respond(savedData._id);
  
@@ -138,17 +130,17 @@ describe('Controller: AppCtrl', function () {
             savedData = angular.copy(expectedUnsavedData)
             savedData._id = '1';
 
-            $httpBackend.whenPOST(REQUEST_ENDPOINT, {
+            $httpBackend.whenPOST(Token.getEndpointUri('request'), {
                     action: 'ls',
                     access_token: ACCESS_TOKEN }).
                 respond([{ _id: '1', name: expectedUnsavedData.name }]);
         });
 
         it('should add a new todo list to the todo associative array', function() {
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'save', data: expectedUnsavedData, access_token: ACCESS_TOKEN }).
                 respond(savedData._id);
-            $httpBackend.expectPOST(REQUEST_ENDPOINT, { action: 'ls', access_token: ACCESS_TOKEN });
+            $httpBackend.expectPOST(Token.getEndpointUri('request'), { action: 'ls', access_token: ACCESS_TOKEN });
 
             expect(Object.keys(scope.todoLists).length).toBe(0);
 
@@ -192,14 +184,14 @@ describe('Controller: AppCtrl', function () {
     describe('cp', function() {
         beforeEach(function() {
 
-            $httpBackend.whenPOST(REQUEST_ENDPOINT, 
+            $httpBackend.whenPOST(Token.getEndpointUri('request'), 
                     { action: 'cp', id: '1', access_token: ACCESS_TOKEN }).
                 respond(VERIFICATION_DATA);
  
             scope.tableOfContents = [ { _id: '1', name: 'word to your mom'} ]; });
 
         it('should copy a todo list from the server to the client', function() {
-            $httpBackend.expectPOST(REQUEST_ENDPOINT, { action: 'cp', id: '1', access_token: ACCESS_TOKEN });
+            $httpBackend.expectPOST(Token.getEndpointUri('request'), { action: 'cp', id: '1', access_token: ACCESS_TOKEN });
             scope.cp(0);
             $httpBackend.flush();
 
@@ -221,7 +213,7 @@ describe('Controller: AppCtrl', function () {
             savedData;
 
         beforeEach(function() {
-            $httpBackend.whenPOST(REQUEST_ENDPOINT, { action: 'ls', access_token: ACCESS_TOKEN }).
+            $httpBackend.whenPOST(Token.getEndpointUri('request'), { action: 'ls', access_token: ACCESS_TOKEN }).
                     respond([{ _id: '1', name: 'a new list' },
                              { _id: '2', name: 'another new list' }]);
 
@@ -231,7 +223,7 @@ describe('Controller: AppCtrl', function () {
 
             savedData = angular.copy(expectedData)
             savedData._id = '1';
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'save', data: expectedData, access_token: ACCESS_TOKEN }).
                 respond(savedData._id);
  
@@ -240,7 +232,7 @@ describe('Controller: AppCtrl', function () {
             expectedData.name = 'another new list';
             savedData = angular.copy(expectedData)
             savedData._id = '2';
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'save', data: expectedData, access_token: ACCESS_TOKEN }).
                 respond(savedData._id);
 
@@ -265,7 +257,7 @@ describe('Controller: AppCtrl', function () {
             expect(Object.keys(scope.todoLists).length).toBe(2);
             expect(scope.tableOfContents.length).toBe(2);
 
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'rm', id: '1', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
 
@@ -275,7 +267,7 @@ describe('Controller: AppCtrl', function () {
             expect(Object.keys(scope.todoLists).length).toBe(1);
             expect(scope.tableOfContents.length).toBe(1);
 
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'rm', id: '2', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
             scope.rm(0);
@@ -289,7 +281,7 @@ describe('Controller: AppCtrl', function () {
             expect(Object.keys(scope.todoLists).length).toBe(2);
             expect(scope.tableOfContents.length).toBe(2);
 
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'rm', id: '2', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
             scope.rm(1);
@@ -298,7 +290,7 @@ describe('Controller: AppCtrl', function () {
             expect(Object.keys(scope.todoLists).length).toBe(1);
             expect(scope.tableOfContents.length).toBe(1);
 
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'rm', id: '1', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
             scope.rm(0);
@@ -315,7 +307,7 @@ describe('Controller: AppCtrl', function () {
             expect(Object.keys(scope.todoLists).length).toBe(2);
             expect(scope.tableOfContents.length).toBe(2);
 
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'rm', id: '2', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
             scope.rm(1);
@@ -332,7 +324,7 @@ describe('Controller: AppCtrl', function () {
             expect(Object.keys(scope.todoLists).length).toBe(1);
             expect(scope.tableOfContents.length).toBe(1);
 
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'rm', id: '1', access_token: ACCESS_TOKEN }).
                 respond('Deleted');
             scope.rm(0);
@@ -354,7 +346,7 @@ describe('Controller: AppCtrl', function () {
             savedData2;
 
         beforeEach(function() {
-            $httpBackend.whenPOST(REQUEST_ENDPOINT, { action: 'ls', access_token: ACCESS_TOKEN }).
+            $httpBackend.whenPOST(Token.getEndpointUri('request'), { action: 'ls', access_token: ACCESS_TOKEN }).
                     respond([{ _id: '1', name: 'a new list' },
                              { _id: '2', name: 'another new list' }]);
 
@@ -364,7 +356,7 @@ describe('Controller: AppCtrl', function () {
 
             savedData1 = angular.copy(expectedData1)
             savedData1._id = '1';
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN }).
                 respond(savedData1._id);
  
@@ -373,7 +365,7 @@ describe('Controller: AppCtrl', function () {
             expectedData2.name = 'another new list';
             savedData2 = angular.copy(expectedData2)
             savedData2._id = '2';
-            $httpBackend.expectPOST(REQUEST_ENDPOINT,
+            $httpBackend.expectPOST(Token.getEndpointUri('request'),
                     { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN }).
                 respond(savedData2._id);
  
@@ -409,18 +401,18 @@ describe('Controller: AppCtrl', function () {
                 expectedData2._id = '2';
  
                 // Add todos to the first list
-                $httpBackend.whenPOST(REQUEST_ENDPOINT,
+                $httpBackend.whenPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN }).
                     respond(savedData1._id);
   
                 // Add todos to the second list
-                $httpBackend.whenPOST(REQUEST_ENDPOINT,
+                $httpBackend.whenPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN }).
                     respond(savedData2._id);
               });
 
             it('should add a todo to the given list', function() {
-                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                $httpBackend.expectPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN });
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(0);
@@ -433,7 +425,7 @@ describe('Controller: AppCtrl', function () {
                 expect(scope.todoLists[id].todos[0].description).toBe('Do this first');
                 expect(scope.todoLists[id].todos[0].owner).toEqual(VERIFICATION_DATA);
 
-                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                $httpBackend.expectPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN });
                 scope.todoDescription = 'Do this next';
                 scope.addTodo(0);
@@ -442,7 +434,7 @@ describe('Controller: AppCtrl', function () {
                 expect(scope.todoDescription).toBe('');
                 expect(scope.todoLists[id].todos.length).toBe(2);
     
-                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                $httpBackend.expectPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN });
  
                 scope.todoDescription = 'Do this first';
@@ -451,7 +443,7 @@ describe('Controller: AppCtrl', function () {
 
                 expect(scope.todoDescription).toBe('');
 
-                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                $httpBackend.expectPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN });
  
                 scope.todoDescription = 'Do this next';
@@ -489,14 +481,14 @@ describe('Controller: AppCtrl', function () {
                 expectedData1._id = '1';
     
                 // Add todos to the first list
-                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                $httpBackend.expectPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN }).
                     respond(savedData1._id);
                 scope.todoDescription = 'Do this first';
                 scope.addTodo(0);
                 $httpBackend.flush();
     
-                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                $httpBackend.expectPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData1, access_token: ACCESS_TOKEN }).
                     respond(savedData1._id);
                 scope.todoDescription = 'Do this next';
@@ -511,7 +503,7 @@ describe('Controller: AppCtrl', function () {
                 expectedData2._id = '2';
     
                 // Add todos to the second list
-                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                $httpBackend.expectPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN }).
                     respond(savedData2._id);
                 scope.todoDescription = 'Do this first';
@@ -519,7 +511,7 @@ describe('Controller: AppCtrl', function () {
                 $httpBackend.flush();
     
                 scope.todoDescription = 'Do this next';
-                $httpBackend.expectPOST(REQUEST_ENDPOINT,
+                $httpBackend.expectPOST(Token.getEndpointUri('request'),
                         { action: 'save', data: expectedData2, access_token: ACCESS_TOKEN }).
                     respond(savedData2._id);
                 scope.addTodo(1);
@@ -818,7 +810,7 @@ describe('Controller: AppCtrl', function () {
     describe('init', function() {
 
         it('should list the app\'s documents', function() {
-            $httpBackend.expectPOST(REQUEST_ENDPOINT, {
+            $httpBackend.expectPOST(Token.getEndpointUri('request'), {
                     action: 'ls',
                     access_token: ACCESS_TOKEN }).
                 respond([{ _id: '1', name: 'a new list' },

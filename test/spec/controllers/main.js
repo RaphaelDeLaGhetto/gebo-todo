@@ -52,7 +52,7 @@ describe('Controller: MainCtrl', function () {
         /**
          * Initialize the Token service
          */
-        token.setParams({
+        token.setEndpoints({
             clientId: CLIENT_ID,
             redirectUri: REDIRECT_URI,
             authorizationEndpoint: AUTHORIZATION_ENDPOINT,

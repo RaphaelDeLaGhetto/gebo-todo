@@ -15,34 +15,36 @@ angular.module('geboClientApp')
     var RESPONSE_TYPE = 'token';
 
     /**
-     * Create a special object for config fields that are required and missing.
-     * If any config items still contain it when Token is used, raise an error.
+     * Create a special object for endpoint fields that are required and missing.
+     * If any endpoint items still contain it when Token is used, raise an error.
      */
     var REQUIRED_AND_MISSING = {};
 
     /**
-     * Default config fields. These need to be set somewhere else.
+     * Default endpoint fields. These need to be set somewhere else.
      */
-    var _config = {
-      clientId: REQUIRED_AND_MISSING,
-      redirectUri: REQUIRED_AND_MISSING,
-      authorizationEndpoint: REQUIRED_AND_MISSING,
-      requestEndpoint: null,
-      verificationEndpoint: REQUIRED_AND_MISSING,
-      rmdirDataEndpoint: null,
-      localStorageName: 'accessToken',
+    var _endpoint = {
+      gebo: REQUIRED_AND_MISSING,
+      redirect: REQUIRED_AND_MISSING,
+      clientId: 'todo@example.com',
+      authorize: '/authorize',
+      verify: '/verify',
+      request: '/request',
+      propose: '/propose',
+      inform: '/inform',
+      localStorageName: 'todo-token',
       scopes: []
     };
 
     /**
-     * Get the configuration options
+     * Get the token request parameters
      *
      * @throws Error
      */
     var _getParams = function() {
         var requiredAndMissing = [];
 
-        angular.forEach(_config, function(value, key) {
+        angular.forEach(_endpoint, function(value, key) {
             if (value === REQUIRED_AND_MISSING || value === undefined) {
               requiredAndMissing.push(key);
             }
@@ -59,17 +61,17 @@ angular.module('geboClientApp')
 
         return {
           response_type: RESPONSE_TYPE,
-          client_id: _config.clientId,
-          redirect_uri: _config.redirectUri,
-          scope: _config.scopes.join(' ')
+          client_id: _endpoint.clientId,
+          redirect_uri: _endpoint.redirect,
+          scope: _endpoint.scopes.join(' ')
         };
       };
 
     /**
      * Set the configuration options
      */
-    var _setParams = function(config) {
-        _config = config;
+    var _setEndpoints = function(endpoint) {
+        _endpoint = angular.extend(_endpoint, endpoint);
       };
 
     // TODO: get/set might want to support expiration to reauthenticate
@@ -82,8 +84,8 @@ angular.module('geboClientApp')
      * @returns {string} The access token.
      */
     var _get = function() {
-        return localStorage.getItem(_config.localStorageName);
-//        return localStorage[_config.localStorageName];
+        return localStorage.getItem(_endpoint.localStorageName);
+//        return localStorage[_endpoint.localStorageName];
       };
 
     /**
@@ -92,8 +94,8 @@ angular.module('geboClientApp')
      * @param accessToken
      */
     var _set = function(accessToken) {
-        localStorage.setItem(_config.localStorageName, accessToken);
-//        localStorage[_config.localStorageName] = accessToken;
+        localStorage.setItem(_endpoint.localStorageName, accessToken);
+//        localStorage[_endpoint.localStorageName] = accessToken;
       };
 
     /**
@@ -102,7 +104,7 @@ angular.module('geboClientApp')
      */
     var _clear = function() {
         _data = {};
-        localStorage.removeItem(_config.localStorageName);
+        localStorage.removeItem(_endpoint.localStorageName);
       };
 
     /**
@@ -123,7 +125,7 @@ angular.module('geboClientApp')
      *          - `error_response`: The server responded with an error, typically
      *            because the token was invalid.  In this
      *            case, the callback parameters to `error` callback on `$http` 
-     *            are available in the object (`data`, `status`, `headers`, `config`).
+     *            are available in the object (`data`, `status`, `headers`, `endpoint`).
      */
     var _verifyAsync = function(accessToken) {
         var deferred = $q.defer();
@@ -152,7 +154,7 @@ angular.module('geboClientApp')
      *                        because the token was invalid.  In this
      *                        case, the callback parameters to `error` callback
      *                        on `$http` are available in the object (`data`,
-     *                        `status`, `headers`, `config`).
+     *                        `status`, `headers`, `endpoint`).
      */
     var _getTokenByPopup = function(extraParams, popupOptions) {
         popupOptions = angular.extend({
@@ -168,7 +170,7 @@ angular.module('geboClientApp')
 
         var deferred = $q.defer(),
             params = angular.extend(_getParams(), extraParams),
-            url = _config.authorizationEndpoint + '?' + _objectToQueryString(params);
+            url = _endpoint.authorize + '?' + _objectToQueryString(params);
 
         var formatPopupOptions = function(options) {
             var pairs = [];
@@ -235,7 +237,7 @@ angular.module('geboClientApp')
      */
     var _verify = function(accessToken, deferred, next) {
 
-        var Token = $resource(_config.verificationEndpoint,
+        var Token = $resource(_getEndpointUri('verify'),
                         { access_token: accessToken },
                         { verify: { method: 'GET' }});
 
@@ -248,13 +250,13 @@ angular.module('geboClientApp')
                   next();
                 }
               },
-            function(data, status, headers, config) {
+            function(data, status, headers, endpoint) {
                   deferred.reject({
                     name: 'error_response',
                     data: data,
                     status: status,
                     headers: headers,
-                    config: config
+                    endpoint: endpoint
                   });
                 });
       };
@@ -266,21 +268,21 @@ angular.module('geboClientApp')
      *
      * @return promise
      */
-    var _rmdir = function(id) {
-        var deferred = $q.defer();
-
-        $http.delete(_config.rmdirDataEndpoint, { params: { _id: id, access_token: _get() }}).
-                success(
-                    function(res) {
-                        deferred.resolve(res);
-                      }).
-                error(
-                    function(err) {
-                        deferred.reject(err);
-                      });
-
-        return deferred.promise;
-      };
+//    var _rmdir = function(id) {
+//        var deferred = $q.defer();
+//
+//        $http.delete(_endpoint.rmdirDataEndpoint, { params: { _id: id, access_token: _get() }}).
+//                success(
+//                    function(res) {
+//                        deferred.resolve(res);
+//                      }).
+//                error(
+//                    function(err) {
+//                        deferred.reject(err);
+//                      });
+//
+//        return deferred.promise;
+//      };
 
     /**
      * Send a request
@@ -293,7 +295,7 @@ angular.module('geboClientApp')
         content.access_token = _get();
 
         $http.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
-        $http.post(_config.requestEndpoint, content).
+        $http.post(_getEndpointUri('request'), content).
                 success(
                     function(response) {
                         deferred.resolve(response);
@@ -325,6 +327,15 @@ angular.module('geboClientApp')
       }
 
     /**
+     * Get an endpoint URI
+     *
+     * @param string
+     */
+    function _getEndpointUri(endpoint) {
+        return _endpoint.gebo + _endpoint[endpoint]; 
+      }
+
+    /**
      * API
      */
     return {
@@ -334,14 +345,18 @@ angular.module('geboClientApp')
             },
       formEncode: _formEncode,
       get: _get,
-      getTokenByPopup: _getTokenByPopup,
+      getEndpoints: function() {
+              return _endpoint;
+            },
+      getEndpointUri: _getEndpointUri,
       getParams: _getParams,
+      getTokenByPopup: _getTokenByPopup,
       objectToQueryString: _objectToQueryString,
       verify: _verify,
       verifyAsync: _verifyAsync,
       request: _request,
-      rmdir: _rmdir,
+      //rmdir: _rmdir,
       set: _set,
-      setParams: _setParams,
+      setEndpoints: _setEndpoints,
     };
   });

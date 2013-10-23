@@ -15,17 +15,20 @@ angular.module('geboClientApp')
      */
     var baseUrl = window.location.origin;
 
-    Token.setParams({
-      clientId: 'abc123',
-      redirectUri: baseUrl + '/oauth2callback.html',
+    Token.setEndpoints({
+//      geboUri: 'http://192.168.1.25:3000/dialog/authorize',
+      gebo: 'http://localhost:3000',
+      //clientId: 'gebo-client@example.com',
+//      clientId: 'abc123',
+      redirect: baseUrl + '/oauth2callback.html',
       scopes: ['*'],
 //      authorizationEndpoint: 'http://192.168.1.25:3000/dialog/authorize',
-      authorizationEndpoint: 'http://localhost:3000/dialog/authorize',
+//      authorizationEndpoint: 'http://localhost:3000/dialog/authorize',
 //      verificationEndpoint: 'http://192.168.1.25:3000\\:3000/verify',
-      verificationEndpoint: 'http://localhost:3000\\:3000/verify',
+//      verificationEndpoint: 'http://localhost:3000\\:3000/verify',
 //      requestEndpoint: 'http://192.168.1.25:3000\\:3000/request',
-      requestEndpoint: 'http://localhost:3000/request',
-      localStorageName: 'gebo-token',
+//      requestEndpoint: 'http://localhost:3000/request',
+//      localStorageName: 'gebo-token',
     });
 
     /**
