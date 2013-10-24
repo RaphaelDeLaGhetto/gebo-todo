@@ -81,14 +81,14 @@ describe('Service: Token', function () {
             token.setEndpoints({
               gebo: GEBO_ADDRESS,
               redirect: REDIRECT_URI,
-              scopes: SCOPES
             });
 
             expect(token.getParams()).toEqual({
               response_type: 'token',
               client_id: token.getEndpoints().clientId,
+              client_name: token.getEndpoints().clientName,
               redirect_uri: REDIRECT_URI,
-              scope: '*'
+              scope: 'read write'
             });
         });
     });

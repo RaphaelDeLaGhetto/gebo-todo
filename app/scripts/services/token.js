@@ -27,13 +27,14 @@ angular.module('geboClientApp')
       gebo: REQUIRED_AND_MISSING,
       redirect: REQUIRED_AND_MISSING,
       clientId: 'todo@example.com',
-      authorize: '/authorize',
+      clientName: 'Todo, the gebo-client sample app',
+      authorize: '/dialog/authorize',
       verify: '/verify',
       request: '/request',
       propose: '/propose',
       inform: '/inform',
       localStorageName: 'todo-token',
-      scopes: []
+      scopes: ['read', 'write']
     };
 
     /**
@@ -62,6 +63,7 @@ angular.module('geboClientApp')
         return {
           response_type: RESPONSE_TYPE,
           client_id: _endpoint.clientId,
+          client_name: _endpoint.clientName,
           redirect_uri: _endpoint.redirect,
           scope: _endpoint.scopes.join(' ')
         };
@@ -170,8 +172,9 @@ angular.module('geboClientApp')
 
         var deferred = $q.defer(),
             params = angular.extend(_getParams(), extraParams),
-            url = _endpoint.authorize + '?' + _objectToQueryString(params);
+            url = _getEndpointUri('authorize') + '?' + _objectToQueryString(params);
 
+        console.log(_getParams());
         var formatPopupOptions = function(options) {
             var pairs = [];
             angular.forEach(options, function(value, key) {
