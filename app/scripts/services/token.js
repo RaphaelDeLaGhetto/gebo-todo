@@ -174,7 +174,6 @@ angular.module('geboClientApp')
             params = angular.extend(_getParams(), extraParams),
             url = _getEndpointUri('authorize') + '?' + _objectToQueryString(params);
 
-        console.log(_getParams());
         var formatPopupOptions = function(options) {
             var pairs = [];
             angular.forEach(options, function(value, key) {
@@ -240,28 +239,40 @@ angular.module('geboClientApp')
      */
     var _verify = function(accessToken, deferred, next) {
 
-        var Token = $resource(_getEndpointUri('verify'),
-                        { access_token: accessToken },
-                        { verify: { method: 'GET' }});
+        $http.get(_getEndpointUri('verify') + '?access_token=' + accessToken).
+                success(
+                    function(response) {
+                        deferred.resolve(response);
+                      }).
+                error(
+                    function(obj, err) {
+                        deferred.reject(err);
+                      });
 
-        Token.verify(
-            function(data) {
-                _data = data;
-                deferred.resolve(data);
 
-                if (next) {
-                  next();
-                }
-              },
-            function(data, status, headers, endpoint) {
-                  deferred.reject({
-                    name: 'error_response',
-                    data: data,
-                    status: status,
-                    headers: headers,
-                    endpoint: endpoint
-                  });
-                });
+//        console.log(_getEndpointUri('verify'));
+//        var Token = $resource(_getEndpointUri('verify'),
+//                        { access_token: accessToken },
+//                        { verify: { method: 'GET' }});
+//
+//        Token.verify(
+//            function(data) {
+//                _data = data;
+//                deferred.resolve(data);
+//
+//                if (next) {
+//                  next();
+//                }
+//              },
+//            function(data, status, headers, endpoint) {
+//                  deferred.reject({
+//                    name: 'error_response',
+//                    data: data,
+//                    status: status,
+//                    headers: headers,
+//                    endpoint: endpoint
+//                  });
+//                });
       };
 
     /**
