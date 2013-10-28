@@ -29,7 +29,7 @@ angular.module('geboClientApp')
     if ($scope.accessToken) {
       Token.verifyAsync($scope.accessToken).
             then(function(data) {
-              $scope.username = data.name;
+              $scope.agentName = data.agentName;
               $scope.verified = true;
             }, function() {
               window.alert('You have an expired or invalid token.');
@@ -52,7 +52,7 @@ angular.module('geboClientApp')
           Token.verifyAsync(params.access_token).
             then(function(data) {
               $scope.accessToken = params.access_token;
-              $scope.username = data.name;
+              $scope.agentName = data.agentName;
               $scope.verified = true;
 
               Token.set(params.access_token);
@@ -69,7 +69,7 @@ angular.module('geboClientApp')
      * Disallow gebo-client access to the gebo user's resources
      */
     $scope.deauthenticate = function () {
-        delete $scope.username;
+        delete $scope.agentName;
         delete $scope.accessToken;
         $scope.verified = false;
         Token.clear();

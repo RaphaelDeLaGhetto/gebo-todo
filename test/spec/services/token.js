@@ -10,13 +10,22 @@ describe('Service: Token', function () {
     var PUT_SUCCESS = { success: true },
         DATA_TO_SAVE = { cat_breath: 'smells like catfood' };
 
-    var VERIFICATION_DATA = {
-                id: '1',
-                name: 'dan',
-                email: 'dan@email.com',
-                scope: ['*'],
-            };
+//    var VERIFICATION_DATA = {
+//                id: '1',
+//                name: 'dan',
+//                email: 'dan@email.com',
+//                scope: ['*'],
+//            };
 
+    var VERIFICATION_DATA = {
+                collectionName: 'someapp@example.com',
+                agentName: 'dan',
+                dbName: 'dan@hg.com',
+                admin: false,
+                read: true,
+                write: true,
+                execute: true
+            };
     // instantiate service
     var token,
         $rootScope,
@@ -289,10 +298,13 @@ describe('Service: Token', function () {
         
                      $httpBackend.flush();
         
-                     expect(_doc.id).toBe('1');
-                     expect(_doc.name).toBe('dan');
-                     expect(_doc.email).toBe('dan@email.com');
-                     expect(_doc.scope).toEqual(['*']);
+                     expect(_doc.agentName).toBe('dan');
+                     expect(_doc.dbName).toBe('dan@hg.com');
+                     expect(_doc.collectionName).toBe('someapp@example.com');
+                     expect(_doc.admin).toEqual(false);
+                     expect(_doc.read).toEqual(true);
+                     expect(_doc.write).toEqual(true);
+                     expect(_doc.execute).toEqual(true);
                 });
             });
         });
