@@ -16,8 +16,8 @@ angular.module('geboClientApp')
     var baseUrl = window.location.origin;
 
     Token.setEndpoints({
-//      gebo: 'http://192.168.1.25:3000/dialog/authorize',
-      gebo: 'http://localhost:3000',
+//      gebo: 'https://192.168.1.25:3443/dialog/authorize',
+      gebo: 'https://localhost:3443',
       redirect: baseUrl + '/oauth2callback.html',
     });
 
