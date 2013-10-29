@@ -13,9 +13,13 @@ describe('Controller: MainCtrl', function () {
 
     var VERIFICATION_DATA = {
                 id: '1',
-                name: 'dan',
-                email: 'dan@email.com',
-                scope: ['*'],
+                agentName: 'dan',
+                dbName: 'dan_at_email_dot_com',
+                collectionName: 'someapp_at_app_dot_com',
+                admin: false,
+                read: true,
+                write: true,
+                execute: true,
             };
 
     var MainCtrl,
@@ -120,7 +124,7 @@ describe('Controller: MainCtrl', function () {
             expect(scope.username).toBe(undefined);
             $rootScope.$apply();
             expect(scope.verified).toBe(true);
-            expect(scope.username).toBe('dan');
+            expect(scope.agentName).toBe('dan');
          }));
  
     });
@@ -152,7 +156,7 @@ describe('Controller: MainCtrl', function () {
             expect(token.set).toHaveBeenCalled();
 
             expect(scope.verified).toBe(true);
-            expect(scope.username).toBe('dan');
+            expect(scope.agentName).toBe('dan');
             expect(scope.accessToken).toBe(ACCESS_TOKEN);
          }));
     });
@@ -182,7 +186,7 @@ describe('Controller: MainCtrl', function () {
             scope.authenticate();
             $rootScope.$apply();
             expect(scope.verified).toBe(true);
-            expect(scope.username).toBe('dan');
+            expect(scope.agentName).toBe('dan');
             expect(scope.accessToken).toBe(ACCESS_TOKEN);
 
             scope.deauthenticate();
