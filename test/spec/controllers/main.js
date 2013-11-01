@@ -121,7 +121,7 @@ describe('Controller: MainCtrl', function () {
             expect(token.verifyAsync).toHaveBeenCalled();
 
             expect(scope.verified).toBe(false);
-            expect(scope.username).toBe(undefined);
+            expect(scope.agentName).toBe(undefined);
             $rootScope.$apply();
             expect(scope.verified).toBe(true);
             expect(scope.agentName).toBe('dan');
@@ -191,7 +191,7 @@ describe('Controller: MainCtrl', function () {
 
             scope.deauthenticate();
             expect(scope.verified).toBe(false);
-            expect(scope.username).toBe(undefined);
+            expect(scope.agentName).toBe(undefined);
             expect(scope.accessToken).toBe(undefined);
             expect(token.get()).toBe(undefined);
             expect($location.path()).toBe('/');
