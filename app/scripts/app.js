@@ -6,7 +6,11 @@ angular.module('geboClientApp', ['ngResource', 'ui.bootstrap', 'ui.compat']).
                         $rootScope.$state = $state;
                         $rootScope.$stateParams = $stateParams;
                       }]).
-    config(function($stateProvider, $urlRouterProvider) {
+    config(function($stateProvider, $urlRouterProvider, $httpProvider) {
+
+        // Enable CORS
+        $httpProvider.defaults.useXDomain = true;
+        delete $httpProvider.defaults.headers.common['X-Requested-With'];
 
         // For an unmatched URL
         $urlRouterProvider.otherwise('/');
