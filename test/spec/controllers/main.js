@@ -2,25 +2,17 @@
 
 describe('Controller: MainCtrl', function () {
 
-    var CLIENT_ID = 'abc123',
-        REDIRECT_URI = 'http://myhost.com',
-        AUTHORIZATION_ENDPOINT = 'http://theirhost.com/dialog/authorize',
-        VERIFICATION_ENDPOINT = 'http://theirhost.com/api/userinfo',
+    var GEBO_URI = 'https://theirhost.com',
+        BASE_URL = 'http://myhost.com',
         LOCAL_STORAGE_NAME = 'accessToken',
-        SCOPES = ['*'],
         ACCESS_TOKEN = '1234';
- 
 
     var VERIFICATION_DATA = {
-                id: '1',
-                agentName: 'dan',
-                dbName: 'dan_at_email_dot_com',
-                collectionName: 'someapp_at_app_dot_com',
-                admin: false,
-                read: true,
-                write: true,
-                execute: true,
-            };
+            id:'1',
+            name: 'dan',
+            email: 'dan@hg.com',
+            admin: false,
+        };
 
     var MainCtrl,
         $httpBackend,
@@ -50,21 +42,15 @@ describe('Controller: MainCtrl', function () {
             $httpBackend.when('GET', 'views/main.html').respond();
         });
 
-//        $httpBackend.whenGET(VERIFICATION_ENDPOINT +
-//                '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
+        /**
+         * verify
+         */
+        $httpBackend.whenGET(token.getEndpointUri('verify') +
+                '?access_token=' + ACCESS_TOKEN).respond(VERIFICATION_DATA);
   
         /**
-         * Initialize the Token service
-         */
-        token.setEndpoints({
-            clientId: CLIENT_ID,
-            redirectUri: REDIRECT_URI,
-            authorizationEndpoint: AUTHORIZATION_ENDPOINT,
-            verificationEndpoint: VERIFICATION_ENDPOINT,
-            localStorageName: LOCAL_STORAGE_NAME,
-            scopes: SCOPES
-        });
- 
+         * Spies
+         */ 
         var store = {};
         spyOn(token, 'get').andCallFake(function() {
             return store[LOCAL_STORAGE_NAME];
@@ -77,7 +63,12 @@ describe('Controller: MainCtrl', function () {
         spyOn(token, 'clear').andCallFake(function(tokenString) {
             delete store[LOCAL_STORAGE_NAME];
         });
- 
+
+        spyOn(token, 'verify').andCallFake(function(token) {
+            var deferred = $q.defer();
+            deferred.resolve(VERIFICATION_DATA);
+            return deferred.promise;
+        });
     });
 
 //    afterEach(function() {
@@ -95,13 +86,6 @@ describe('Controller: MainCtrl', function () {
                     $scope: scope,
                     Token: token
             });
-
-            spyOn(token, 'verifyAsync').andCallFake(function(token) {
-                var verificationData;
-                var deferred = $q.defer();
-                deferred.resolve(VERIFICATION_DATA);
-                return deferred.promise;
-            });
         }));
 
         it('should look for a locally stored token', function() {
@@ -118,7 +102,7 @@ describe('Controller: MainCtrl', function () {
 
             expect(token.get).toHaveBeenCalled();
             expect(scope.accessToken).toBe(ACCESS_TOKEN);
-            expect(token.verifyAsync).toHaveBeenCalled();
+            expect(token.verify).toHaveBeenCalled();
 
             expect(scope.verified).toBe(false);
             expect(scope.agentName).toBe(undefined);
@@ -134,12 +118,6 @@ describe('Controller: MainCtrl', function () {
      */
     describe('authenticate', function() {
         beforeEach(function() {
-            spyOn(token, 'verifyAsync').andCallFake(function(token) {
-                var deferred = $q.defer();
-                deferred.resolve(VERIFICATION_DATA);
-                return deferred.promise;
-            });
-
             spyOn(token, 'getTokenByPopup').andCallFake(function() {
                 var deferred = $q.defer();
                 deferred.resolve({ access_token: ACCESS_TOKEN });
@@ -152,7 +130,7 @@ describe('Controller: MainCtrl', function () {
 
             expect(token.getTokenByPopup).toHaveBeenCalled();
             $rootScope.$apply();
-            expect(token.verifyAsync).toHaveBeenCalled();
+            expect(token.verify).toHaveBeenCalled();
             expect(token.set).toHaveBeenCalled();
 
             expect(scope.verified).toBe(true);
@@ -168,12 +146,6 @@ describe('Controller: MainCtrl', function () {
     describe('deauthenticate', function() {
 
         beforeEach(function() {
-            spyOn(token, 'verifyAsync').andCallFake(function(token) {
-                var deferred = $q.defer();
-                deferred.resolve(VERIFICATION_DATA);
-                return deferred.promise;
-            });
-
             spyOn(token, 'getTokenByPopup').andCallFake(function() {
                 var deferred = $q.defer();
                 deferred.resolve({ access_token: ACCESS_TOKEN });
@@ -197,14 +169,5 @@ describe('Controller: MainCtrl', function () {
             expect($location.path()).toBe('/');
          }));
     });
-
-//    it('should load entries with HTTP', function() {
-//        $httpBackend.expectGET('/test');
-//        MainCtrl.load(function() {
-//            expect(Object.keys(scope.entries).length).toBe(1);
-//            expect(scope.entries.name).toBe('dan');
-//        });
-//        $httpBackend.flush();
-//    });
 
 });

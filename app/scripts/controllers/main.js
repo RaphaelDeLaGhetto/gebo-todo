@@ -16,8 +16,8 @@ angular.module('geboClientApp')
     var baseUrl = window.location.origin;
 
     Token.setEndpoints({
-//      gebo: 'https://192.168.1.25:3443/dialog/authorize',
-      gebo: 'https://localhost:3443',
+      gebo: 'https://192.168.1.27:3443',
+//      gebo: 'https://localhost:3443',
       redirect: baseUrl + '/oauth2callback.html',
     });
 
@@ -27,9 +27,9 @@ angular.module('geboClientApp')
     $scope.accessToken = Token.get();
 
     if ($scope.accessToken) {
-      Token.verifyAsync($scope.accessToken).
+      Token.verify($scope.accessToken).
             then(function(data) {
-              $scope.agentName = data.agentName;
+              $scope.agentName = data.name;
               $scope.verified = true;
             }, function() {
               window.alert('You have an expired or invalid token.');
@@ -41,7 +41,7 @@ angular.module('geboClientApp')
      */
     $scope.authenticate = function() {
 
-      var extraParams = {};//$scope.askApproval ? { approval_prompt: 'force' } : {};
+      var extraParams = {};
       Token.getTokenByPopup(extraParams)
         .then(function(params) {
           // Success getting token from popup.
@@ -49,10 +49,10 @@ angular.module('geboClientApp')
           // Verify the token before setting it, to avoid
           // the confused deputy problem (uh, what's the 
           // confused deputy problem?)
-          Token.verifyAsync(params.access_token).
+          Token.verify(params.access_token).
             then(function(data) {
               $scope.accessToken = params.access_token;
-              $scope.agentName = data.agentName;
+              $scope.agentName = data.name;
               $scope.verified = true;
 
               Token.set(params.access_token);
