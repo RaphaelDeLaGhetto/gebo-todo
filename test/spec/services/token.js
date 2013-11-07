@@ -279,7 +279,7 @@ describe('Service: Token', function () {
         
                      expect(_doc._id).toBe('1');
                      expect(_doc.name).toBe('dan');
-                     expect(_doc.email).toBe('dan@hg.com');
+                     expect(_doc.email).toBe('dan@email.com');
                      expect(_doc.admin).toEqual(false);
                 });
             });

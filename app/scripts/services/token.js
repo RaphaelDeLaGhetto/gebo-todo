@@ -230,30 +230,6 @@ angular.module('geboClientApp')
                       });
 
         return deferred.promise;
-
-//        console.log(_getEndpointUri('verify'));
-//        var Token = $resource(_getEndpointUri('verify'),
-//                        { access_token: accessToken },
-//                        { verify: { method: 'GET' }});
-//
-//        Token.verify(
-//            function(data) {
-//                _data = data;
-//                deferred.resolve(data);
-//
-//                if (next) {
-//                  next();
-//                }
-//              },
-//            function(data, status, headers, endpoint) {
-//                  deferred.reject({
-//                    name: 'error_response',
-//                    data: data,
-//                    status: status,
-//                    headers: headers,
-//                    endpoint: endpoint
-//                  });
-//                });
       };
 
     /**
