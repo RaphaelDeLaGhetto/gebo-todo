@@ -110,32 +110,6 @@ angular.module('geboClientApp')
       };
 
     /**
-     * Verifies that the access token was issued to the current client.
-     *
-     * @param accessToken An access token received from the authorization server.
-     *
-     * @returns {Promise} Promise that will be resolved when the authorization 
-     *          server has verified that the token is valid, and we've verified
-     *          that the token is passed back has audience that matches our client
-     *          ID (to prevent the Confused Deputy Problem).
-     *
-     *          If there's an error verifying the token, the promise is rejected 
-     *          with an object identifying the `name` error
-     *          in the name member.  The `name` can be either:
-     *
-     *          - `invalid_audience`: The audience didn't match our client ID.
-     *          - `error_response`: The server responded with an error, typically
-     *            because the token was invalid.  In this
-     *            case, the callback parameters to `error` callback on `$http` 
-     *            are available in the object (`data`, `status`, `headers`, `endpoint`).
-     */
-    var _verifyAsync = function(accessToken) {
-        var deferred = $q.defer();
-        _verify(accessToken, deferred);
-        return deferred.promise;
-      };
-
-    /**
      * Verifies an access token asynchronously.
      *
      * @param extraParams An access token received from the authorization server.
@@ -236,8 +210,14 @@ angular.module('geboClientApp')
 
     /**
      * Verify the user is still authenticated
+     *
+     * @param string
+     *
+     * @return promise
      */
-    var _verify = function(accessToken, deferred, next) {
+    var _verify = function(accessToken) {
+
+        var deferred = $q.defer();
 
         $http.get(_getEndpointUri('verify') + '?access_token=' + accessToken).
                 success(
@@ -249,6 +229,7 @@ angular.module('geboClientApp')
                         deferred.reject(err);
                       });
 
+        return deferred.promise;
 
 //        console.log(_getEndpointUri('verify'));
 //        var Token = $resource(_getEndpointUri('verify'),
@@ -367,7 +348,6 @@ angular.module('geboClientApp')
       getTokenByPopup: _getTokenByPopup,
       objectToQueryString: _objectToQueryString,
       verify: _verify,
-      verifyAsync: _verifyAsync,
       request: _request,
       //rmdir: _rmdir,
       set: _set,

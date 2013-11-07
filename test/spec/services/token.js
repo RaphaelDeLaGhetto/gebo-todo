@@ -10,22 +10,13 @@ describe('Service: Token', function () {
     var PUT_SUCCESS = { success: true },
         DATA_TO_SAVE = { cat_breath: 'smells like catfood' };
 
-//    var VERIFICATION_DATA = {
-//                id: '1',
-//                name: 'dan',
-//                email: 'dan@email.com',
-//                scope: ['*'],
-//            };
-
     var VERIFICATION_DATA = {
-                collectionName: 'someapp@example.com',
-                agentName: 'dan',
-                dbName: 'dan@hg.com',
+                _id: '1',
+                name: 'dan',
+                email: 'dan@email.com',
                 admin: false,
-                read: true,
-                write: true,
-                execute: true
             };
+
     // instantiate service
     var token,
         $rootScope,
@@ -234,18 +225,6 @@ describe('Service: Token', function () {
        });
 
         /**
-         * verifyAsync
-         */
-        describe('verifyAsync', function() {
-            it('should return a promise', function() {
-                $httpBackend.expectGET(token.getEndpointUri('verify') + 
-                        '?access_token=' + ACCESS_TOKEN);
-                expect(token.verifyAsync(ACCESS_TOKEN)).toBeDefined();
-                $httpBackend.flush();
-            });
-        });
-
-        /**
          * request
          */
         describe('request', function() {
@@ -298,13 +277,10 @@ describe('Service: Token', function () {
         
                      $httpBackend.flush();
         
-                     expect(_doc.agentName).toBe('dan');
-                     expect(_doc.dbName).toBe('dan@hg.com');
-                     expect(_doc.collectionName).toBe('someapp@example.com');
+                     expect(_doc._id).toBe('1');
+                     expect(_doc.name).toBe('dan');
+                     expect(_doc.email).toBe('dan@hg.com');
                      expect(_doc.admin).toEqual(false);
-                     expect(_doc.read).toEqual(true);
-                     expect(_doc.write).toEqual(true);
-                     expect(_doc.execute).toEqual(true);
                 });
             });
         });
